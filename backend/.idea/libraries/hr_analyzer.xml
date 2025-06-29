@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="hr-analyzer">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/hr-analyzer.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
