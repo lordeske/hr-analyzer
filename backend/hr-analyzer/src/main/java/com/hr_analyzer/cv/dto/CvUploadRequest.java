@@ -13,6 +13,6 @@ public class CvUploadRequest {
     private String candidateLastName;
     private String email;
     private String phoneNumber;
-    private String jobTitle;
     private String cvContent;
+    private Long jobId;
 }

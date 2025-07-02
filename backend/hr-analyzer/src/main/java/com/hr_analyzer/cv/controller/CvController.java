@@ -47,11 +47,14 @@ public class CvController {
 
     }
 
+    /*
 
     @PostMapping("/advancedSearch")
     public ResponseEntity<List<CvResponse>>  searchCvs(@RequestBody CvSearchRequest request) {
         return ResponseEntity.ok(cvService.searchCvs(request));
     }
+
+     */
 
 
 

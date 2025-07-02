@@ -5,6 +5,7 @@ import com.hr_analyzer.auth.model.User;
 import com.hr_analyzer.cv.dto.CvResponse;
 import com.hr_analyzer.cv.dto.CvUploadRequest;
 import com.hr_analyzer.cv.model.Cv;
+import com.hr_analyzer.job.model.Job;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -13,17 +14,17 @@ import java.time.LocalDateTime;
 public class CvMapper {
 
 
-    public static Cv mapToCv(CvUploadRequest request, User uploadedBy, double matchScore) {
+    public static Cv mapToCv(CvUploadRequest request, User uploadedBy, Job job , Double matchScore) {
         return Cv.builder()
                 .candidateFirstName(request.getCandidateFirstName())
                 .candidateLastName(request.getCandidateLastName())
                 .email(request.getEmail())
                 .phoneNumber(request.getPhoneNumber())
-                .jobTitle(request.getJobTitle())
                 .cvContent(request.getCvContent())
-                .matchScore(matchScore)
                 .uploadTime(LocalDateTime.now())
                 .uploadedBy(uploadedBy)
+                .job(job)
+                .matchScore(matchScore)
                 .build();
     }
 
@@ -36,8 +37,6 @@ public class CvMapper {
                 .candidateLastName(cv.getCandidateLastName())
                 .email(cv.getEmail())
                 .phoneNumber(cv.getPhoneNumber())
-                .jobTitle(cv.getJobTitle())
-                .matchScore(cv.getMatchScore())
                 .uploadTime(cv.getUploadTime())
                 .uploadedByUsername(cv.getUploadedBy().getUsername())
                 .build();

@@ -9,6 +9,8 @@ import com.hr_analyzer.cv.mapper.CvMapper;
 import com.hr_analyzer.cv.model.Cv;
 import com.hr_analyzer.cv.repository.CvRepository;
 
+import com.hr_analyzer.job.model.Job;
+import com.hr_analyzer.job.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,8 @@ public class CvService {
     private CvRepository cvRepository;
 
     @Autowired
+    private JobRepository jobRepository;
+    @Autowired
     private CvScoringService cvScoringService;
 
     public void uploadCv(CvUploadRequest cvUploadRequest)
@@ -35,10 +39,14 @@ public class CvService {
         User uploader = SecurityUtils.getCurrentUser()
                 .orElseThrow(() -> new RuntimeException("Nema ulogovanog korisnika"));
 
-        double matchScore = cvScoringService.calculateMatchScore(cvUploadRequest.getJobTitle(),
-                cvUploadRequest.getCvContent());
+        Job job = jobRepository.findById(cvUploadRequest.getJobId())
+                .orElseThrow(() -> new RuntimeException("Posao nije pronađen"));
 
-        Cv cv = CvMapper.mapToCv(cvUploadRequest, uploader, matchScore);
+
+        double matchScore = cvScoringService.calculateMatchScore(job.getDescription(),
+               cvUploadRequest.getCvContent());
+
+        Cv cv = CvMapper.mapToCv(cvUploadRequest, uploader, job , matchScore);
 
 
         cvRepository.save(cv);
@@ -67,7 +75,7 @@ public class CvService {
 
     }
 
-
+    /*
     public List<CvResponse> searchCvs(CvSearchRequest request)
     {
 
@@ -125,6 +133,9 @@ public class CvService {
 
 
     }
+
+
+     */
 
 
 

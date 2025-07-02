@@ -2,6 +2,7 @@ package com.hr_analyzer.cv.model;
 
 
 import com.hr_analyzer.auth.model.User;
+import com.hr_analyzer.job.model.Job;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,16 +27,21 @@ public class Cv {
     private String candidateLastName;
     private String email;
     private String phoneNumber;
-    private String jobTitle;
 
     @Column(length = 10000)
     private String cvContent;
-
-    private Double matchScore;
 
     private LocalDateTime uploadTime;
 
     @ManyToOne
     @JoinColumn(name = "uploaded_by_id")
     private User uploadedBy; // HR
+
+
+    @ManyToOne
+    @JoinColumn(name = "job_id")
+    private Job job;
+
+    private Double matchScore;
+
 }
