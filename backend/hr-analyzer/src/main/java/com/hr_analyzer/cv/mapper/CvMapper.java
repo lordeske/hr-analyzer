@@ -33,15 +33,15 @@ public class CvMapper {
 
         return CvResponse.builder()
                 .id(cv.getId())
-                .candidateFirstName(cv.getCandidateFirstName())
                 .candidateLastName(cv.getCandidateLastName())
+                .candidateFirstName(cv.getCandidateFirstName())
                 .email(cv.getEmail())
                 .phoneNumber(cv.getPhoneNumber())
+                .jobTitle(cv.getJob().getTitle())
+                .matchScore(cv.getMatchScore())
                 .uploadTime(cv.getUploadTime())
                 .uploadedByUsername(cv.getUploadedBy().getUsername())
                 .build();
-
-
 
     }
 

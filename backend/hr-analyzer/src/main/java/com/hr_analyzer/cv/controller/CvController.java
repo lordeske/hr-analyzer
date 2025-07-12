@@ -7,9 +7,11 @@ import com.hr_analyzer.cv.dto.CvSearchRequest;
 import com.hr_analyzer.cv.dto.CvUploadRequest;
 import com.hr_analyzer.cv.service.CvService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -47,14 +49,31 @@ public class CvController {
 
     }
 
-    /*
+
 
     @PostMapping("/advancedSearch")
     public ResponseEntity<List<CvResponse>>  searchCvs(@RequestBody CvSearchRequest request) {
         return ResponseEntity.ok(cvService.searchCvs(request));
     }
 
-     */
+
+    @PostMapping(value = "/uploadCvFile" , consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadCvFile(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("jobId") Long jobId,
+            @RequestParam("firstName") String firstName,
+            @RequestParam("lastName") String lastname,
+            @RequestParam("email") String email,
+            @RequestParam("phone") String phone
+    )
+    {
+
+        cvService.uploadCvWithFile(file, jobId, firstName, lastname, email, phone);
+        return ResponseEntity.ok("CV upsesno uploadovan");
+
+
+    }
+
 
 
 

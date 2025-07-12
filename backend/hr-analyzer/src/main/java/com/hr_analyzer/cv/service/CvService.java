@@ -11,9 +11,14 @@ import com.hr_analyzer.cv.repository.CvRepository;
 
 import com.hr_analyzer.job.model.Job;
 import com.hr_analyzer.job.repository.JobRepository;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Security;
 import java.util.Comparator;
@@ -75,13 +80,51 @@ public class CvService {
 
     }
 
-    /*
+    public void uploadCvWithFile(MultipartFile file , Long jobId,
+                                 String firstName, String lastName,
+                                 String email, String phone) {
+
+
+
+        User uploader = SecurityUtils.getCurrentUser()
+                .orElseThrow(() -> new RuntimeException("Nema ulogovanog korisnika"));
+
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(() -> new RuntimeException("Posao nije pronađen"));
+
+
+        String cvContent = extractTextFromFile(file);
+
+        double matchScore = cvScoringService.calculateMatchScore(job.getDescription(), cvContent);
+
+
+        CvUploadRequest cvUploadRequest = CvUploadRequest.builder()
+                .candidateFirstName(firstName)
+                .candidateLastName(lastName)
+                .phoneNumber(phone)
+                .email(email)
+                .jobId(jobId)
+                .cvContent(cvContent)
+                .build();
+
+        Cv cv = CvMapper.mapToCv(cvUploadRequest, uploader, job, matchScore);
+
+        cvRepository.save(cv);
+
+    }
+
+
+
+
     public List<CvResponse> searchCvs(CvSearchRequest request)
     {
 
         List<Cv> cvs = cvRepository.findAll();
 
         Stream<Cv> stream  = cvs.stream();
+
+        stream = stream.filter(cv -> cv.getMatchScore() != null);
+
 
 
         // filter po keyword
@@ -91,8 +134,8 @@ public class CvService {
             String keyword = request.getKeyword().toLowerCase();
             stream = stream.filter(cv ->
                     cv.getCandidateFirstName().toLowerCase().contains(keyword) ||
-                    cv.getCandidateLastName().toLowerCase().contains(keyword) ||
-                    cv.getJobTitle().toLowerCase().contains(keyword)
+                            cv.getCandidateLastName().toLowerCase().contains(keyword) ||
+                            cv.getJob().getTitle().toLowerCase().contains(keyword)
 
             );
 
@@ -135,7 +178,30 @@ public class CvService {
     }
 
 
-     */
+
+    /// funkcije
+    private String extractTextFromFile(MultipartFile file) {
+        try {
+            String filename = file.getOriginalFilename();
+            if (filename.endsWith(".pdf")) {
+                try (PDDocument document = PDDocument.load(file.getInputStream())) {
+                    PDFTextStripper stripper = new PDFTextStripper();
+                    return stripper.getText(document);
+                }
+            } else if (filename.endsWith(".docx")) {
+                XWPFDocument doc = new XWPFDocument(file.getInputStream());
+                XWPFWordExtractor extractor = new XWPFWordExtractor(doc);
+                return extractor.getText();
+            } else {
+                throw new RuntimeException("Nepodržan format fajla");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Greška pri čitanju fajla: " + e.getMessage());
+        }
+    }
+
+
+
 
 
 
