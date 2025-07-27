@@ -2,13 +2,16 @@ package com.hr_analyzer.cv.service;
 
 import com.hr_analyzer.auth.config.SecurityUtils;
 import com.hr_analyzer.auth.model.User;
+import com.hr_analyzer.cv.dto.CvAnalysisResult;
 import com.hr_analyzer.cv.dto.CvResponse;
 import com.hr_analyzer.cv.dto.CvSearchRequest;
 import com.hr_analyzer.cv.dto.CvUploadRequest;
 import com.hr_analyzer.cv.mapper.CvMapper;
 import com.hr_analyzer.cv.model.Cv;
+import com.hr_analyzer.cv.model.CvSuggestion;
 import com.hr_analyzer.cv.repository.CvRepository;
 
+import com.hr_analyzer.cv.repository.CvSuggestionRepository;
 import com.hr_analyzer.job.model.Job;
 import com.hr_analyzer.job.repository.JobRepository;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -38,26 +41,32 @@ public class CvService {
     @Autowired
     private CvScoringService cvScoringService;
 
-    public void uploadCv(CvUploadRequest cvUploadRequest)
-    {
+    @Autowired
+    private CohereScoringService cohereScoringService;
 
-        User uploader = SecurityUtils.getCurrentUser()
-                .orElseThrow(() -> new RuntimeException("Nema ulogovanog korisnika"));
+    @Autowired
+    private CvSuggestionRepository cvSuggestionRepository;
 
-        Job job = jobRepository.findById(cvUploadRequest.getJobId())
-                .orElseThrow(() -> new RuntimeException("Posao nije pronađen"));
-
-
-        double matchScore = cvScoringService.calculateMatchScore(job.getDescription(),
-               cvUploadRequest.getCvContent());
-
-        Cv cv = CvMapper.mapToCv(cvUploadRequest, uploader, job , matchScore);
-
-
-        cvRepository.save(cv);
-
-
-    }
+//    public void uploadCv(CvUploadRequest cvUploadRequest)
+//    {
+//
+//        User uploader = SecurityUtils.getCurrentUser()
+//                .orElseThrow(() -> new RuntimeException("Nema ulogovanog korisnika"));
+//
+//        Job job = jobRepository.findById(cvUploadRequest.getJobId())
+//                .orElseThrow(() -> new RuntimeException("Posao nije pronađen"));
+//
+//
+//        double matchScore = cvScoringService.calculateMatchScore(job.getDescription(),
+//               cvUploadRequest.getCvContent());
+//
+//        Cv cv = CvMapper.mapToCv(cvUploadRequest, uploader, job , matchScore);
+//
+//
+//        cvRepository.save(cv);
+//
+//
+//    }
 
     public List<CvResponse> getAllCvs()
     {
@@ -95,7 +104,7 @@ public class CvService {
 
         String cvContent = extractTextFromFile(file);
 
-        double matchScore = cvScoringService.calculateMatchScore(job.getDescription(), cvContent);
+        CvAnalysisResult aiData = cohereScoringService.analyzeCv(job.getDescription(), cvContent);
 
 
         CvUploadRequest cvUploadRequest = CvUploadRequest.builder()
@@ -107,9 +116,23 @@ public class CvService {
                 .cvContent(cvContent)
                 .build();
 
-        Cv cv = CvMapper.mapToCv(cvUploadRequest, uploader, job, matchScore);
-
+        Cv cv = CvMapper.mapToCv(cvUploadRequest, uploader, job, aiData.getMatchPercentage());
         cvRepository.save(cv);
+
+
+
+        List<String> suggestions = aiData.getSuggestions();
+        List<CvSuggestion> suggestionEntities = suggestions.stream()
+                .map(text -> CvSuggestion.builder()
+                        .suggestionText(text)
+                        .cv(cv)
+                        .build())
+                .toList();
+
+        cvSuggestionRepository.saveAll(suggestionEntities);
+
+
+
 
     }
 

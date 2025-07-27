@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "cv")
@@ -43,5 +44,9 @@ public class Cv {
     private Job job;
 
     private Double matchScore;
+
+    @OneToMany(mappedBy = "cv", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CvSuggestion> suggestions;
+
 
 }

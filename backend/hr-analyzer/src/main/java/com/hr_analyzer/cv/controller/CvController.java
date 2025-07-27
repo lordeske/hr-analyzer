@@ -24,11 +24,11 @@ public class CvController {
     private CvService cvService;
 
 
-    @PostMapping("/upload")
-    public ResponseEntity<?> uploadCv(@RequestBody CvUploadRequest request) {
-        cvService.uploadCv(request);
-        return ResponseEntity.ok("CV uploadovan");
-    }
+//    @PostMapping("/upload")
+//    public ResponseEntity<?> uploadCv(@RequestBody CvUploadRequest request) {
+//        cvService.uploadCv(request);
+//        return ResponseEntity.ok("CV uploadovan");
+//    }
 
 
 

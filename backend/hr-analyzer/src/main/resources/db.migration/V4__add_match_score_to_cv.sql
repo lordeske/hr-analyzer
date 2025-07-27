@@ -1,4 +1,0 @@
-
-
-ALTER TABLE cv
-ADD COLUMN match_score DOUBLE PRECISION;

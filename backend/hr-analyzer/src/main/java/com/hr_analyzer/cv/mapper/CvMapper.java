@@ -2,9 +2,11 @@ package com.hr_analyzer.cv.mapper;
 
 
 import com.hr_analyzer.auth.model.User;
+import com.hr_analyzer.cv.dto.CvAnalysisResult;
 import com.hr_analyzer.cv.dto.CvResponse;
 import com.hr_analyzer.cv.dto.CvUploadRequest;
 import com.hr_analyzer.cv.model.Cv;
+import com.hr_analyzer.cv.model.CvSuggestion;
 import com.hr_analyzer.job.model.Job;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +16,7 @@ import java.time.LocalDateTime;
 public class CvMapper {
 
 
-    public static Cv mapToCv(CvUploadRequest request, User uploadedBy, Job job , Double matchScore) {
+    public static Cv mapToCv(CvUploadRequest request, User uploadedBy, Job job , Double aiData ) {
         return Cv.builder()
                 .candidateFirstName(request.getCandidateFirstName())
                 .candidateLastName(request.getCandidateLastName())
@@ -24,7 +26,7 @@ public class CvMapper {
                 .uploadTime(LocalDateTime.now())
                 .uploadedBy(uploadedBy)
                 .job(job)
-                .matchScore(matchScore)
+                .matchScore(aiData)
                 .build();
     }
 
@@ -41,6 +43,7 @@ public class CvMapper {
                 .matchScore(cv.getMatchScore())
                 .uploadTime(cv.getUploadTime())
                 .uploadedByUsername(cv.getUploadedBy().getUsername())
+                .suggestion(cv.getSuggestions().stream().map(CvSuggestion::getSuggestionText).toList())
                 .build();
 
     }

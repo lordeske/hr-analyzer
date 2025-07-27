@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -21,4 +22,5 @@ public class CvResponse {
     private Double matchScore;
     private LocalDateTime uploadTime;
     private String uploadedByUsername;
+    private List<String> suggestion;
 }
