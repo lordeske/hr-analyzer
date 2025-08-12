@@ -11,6 +11,6 @@ import java.util.List;
 @AllArgsConstructor
 public class CvAnalysisResult {
 
-    double matchPercentage;
+    Double matchPercentage;
     List<String> suggestions;
 }

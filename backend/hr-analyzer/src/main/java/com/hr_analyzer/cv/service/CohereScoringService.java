@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.nio.DoubleBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -89,7 +90,7 @@ public class CohereScoringService {
 
             Map<String, Object> message = objectMapper.readValue(textJson, new TypeReference<>() {});
 
-            Integer matchScore = (Integer) message.get("matchPercentage");
+            Double matchScore = (Double) message.get("matchPercentage");
             List<String> suggestions = objectMapper.convertValue(message.get("suggestions"), new TypeReference<>() {});
 
             return new CvAnalysisResult(matchScore,suggestions);

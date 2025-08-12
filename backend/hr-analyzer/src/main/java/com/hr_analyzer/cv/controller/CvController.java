@@ -1,35 +1,29 @@
 package com.hr_analyzer.cv.controller;
 
 
-import com.hr_analyzer.auth.model.User;
+
 import com.hr_analyzer.cv.dto.CvResponse;
 import com.hr_analyzer.cv.dto.CvSearchRequest;
-import com.hr_analyzer.cv.dto.CvUploadRequest;
 import com.hr_analyzer.cv.service.CvService;
+import jakarta.validation.constraints.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @RestController
+@Validated
 @RequestMapping("/api/cv")
 public class CvController {
 
 
     @Autowired
     private CvService cvService;
-
-
-//    @PostMapping("/upload")
-//    public ResponseEntity<?> uploadCv(@RequestBody CvUploadRequest request) {
-//        cvService.uploadCv(request);
-//        return ResponseEntity.ok("CV uploadovan");
-//    }
-
 
 
     @GetMapping("/all")
@@ -60,16 +54,17 @@ public class CvController {
     @PostMapping(value = "/uploadCvFile" , consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadCvFile(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("jobId") Long jobId,
-            @RequestParam("firstName") String firstName,
-            @RequestParam("lastName") String lastname,
-            @RequestParam("email") String email,
-            @RequestParam("phone") String phone
+            @RequestParam("jobId") @NotNull @Positive(message = "jobID mora da bude pozitivan") Long jobId,
+            @RequestParam("firstName") @NotBlank(message = "Ime je obavezno") String firstName,
+            @RequestParam("lastName") @NotBlank(message = "Prezime je obavezno") String lastname,
+            @RequestParam("email") @Email(message = "Email nije validan") String email,
+            @RequestParam("phone") @Pattern(regexp = "^\\+?[1-9]\\d{7,14}$", message = "Telefon nije validan") String phone
     )
     {
 
         cvService.uploadCvWithFile(file, jobId, firstName, lastname, email, phone);
-        return ResponseEntity.ok("CV upsesno uploadovan");
+        return ResponseEntity.ok("CV uspesno uploadovan");
+
 
 
     }
