@@ -2,11 +2,12 @@ package com.hr_analyzer.cv.exception;
 
 
 
+import com.hr_analyzer.auth.exceptions.UserAlreadyExistsException;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -105,6 +106,19 @@ public class GlobalExceptionHandler {
         body.put("error", ex.getMessage());
 
         return new ResponseEntity<>(body, HttpStatus.SERVICE_UNAVAILABLE);
+
+    }
+
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<Map<String, Object>> handleUserNotExist(UserAlreadyExistsException ex)
+    {
+        Map<String, Object> body = new HashMap<>();
+
+        body.put("status", HttpStatus.CONFLICT.value());
+        body.put("error", ex.getMessage());
+
+        return new ResponseEntity<>(body, HttpStatus.CONFLICT);
+
 
     }
 

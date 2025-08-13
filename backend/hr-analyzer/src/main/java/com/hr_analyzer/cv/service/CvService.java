@@ -99,7 +99,7 @@ public class CvService {
                     || aiData.getSuggestions() == null
                     || aiData.getSuggestions().isEmpty()) {
 
-                throw new RuntimeException("Greska kod AI analize, pokusajte ponovo");
+                throw new AiAnalysisException("Greska kod AI analize, pokusajte ponovo");
 
             }
 
