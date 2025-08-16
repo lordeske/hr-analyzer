@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -24,10 +25,26 @@ public class Job {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column
     private String title;
 
-    @Column(length = 5000)
-    private String description;
+
+    @Column
+    private String company;
+
+    @Column
+    private String location;
+
+    @Column(name = "source_url", length = 2000)
+    private String sourceUrl;
+
+
+    @Column(name = "external_id", length = 100, unique = true )
+    private String externalId;
+
+    @Lob
+    @Column(name = "description_snapshot", columnDefinition = "TEXT", nullable = false)
+    private String descriptionSnapshot;
 
     private LocalDateTime createdAt;
 
@@ -37,6 +54,15 @@ public class Job {
 
     @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Cv> cvs;
+
+    @PrePersist
+    public void prePresist()
+    {
+        if(createdAt == null)
+        {
+            createdAt = LocalDateTime.now();
+        }
+    }
 
 
 }

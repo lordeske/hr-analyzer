@@ -10,6 +10,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class JobRequest {
 
+
     private String title;
-    private String description;
+    private String company;
+    private String location;
+    private String sourceUrl;
+    private String externalId;
+    private String descriptionSnapshot;
+
 }

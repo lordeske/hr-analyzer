@@ -15,11 +15,12 @@ public class JobMapper {
     {
         return Job.builder()
                 .title(jobRequest.getTitle())
-                .description(jobRequest.getDescription())
-                .createdAt(LocalDateTime.now())
+                .company(jobRequest.getCompany())
+                .sourceUrl(jobRequest.getSourceUrl())
+                .externalId(jobRequest.getExternalId())
+                .descriptionSnapshot(jobRequest.getDescriptionSnapshot())
                 .createdBy(user)
                 .build();
-
 
 
     }
@@ -30,13 +31,18 @@ public class JobMapper {
         return JobResponse.builder()
                 .id(job.getId())
                 .title(job.getTitle())
-                .description(job.getDescription())
+                .company(job.getCompany())
+                .location(job.getLocation())
+                .sourceUrl(job.getSourceUrl())
+                .externalId(job.getExternalId())
+                .descriptionSnapshot(job.getDescriptionSnapshot())
+                .createdBy(job.getCreatedBy().getUsername())
                 .createdAt(job.getCreatedAt())
-                .createdByUsername(job.getCreatedBy().getUsername())
                 .build();
-
-
     }
+
+
+
 
 
 }

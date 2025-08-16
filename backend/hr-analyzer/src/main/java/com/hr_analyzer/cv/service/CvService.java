@@ -92,7 +92,7 @@ public class CvService {
         String cvContent = extractTextFromFile(file);
 
         try {
-            CvAnalysisResult aiData = cohereScoringService.analyzeCv(job.getDescription(), cvContent);
+            CvAnalysisResult aiData = cohereScoringService.analyzeCv(job.getDescriptionSnapshot(), cvContent);
 
             if (aiData == null
                     || aiData.getMatchPercentage() == null
@@ -138,7 +138,7 @@ public class CvService {
         catch (Exception ex)
         {
             log.error("AI analiza nije uspela za jobId={} (title={})", job.getId(), job.getTitle(), ex);
-           throw ex;
+            throw ex;
 
 
         }

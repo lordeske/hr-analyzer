@@ -24,6 +24,14 @@ public class JobController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<JobResponse> getOne(@PathVariable Long id) {
+        return ResponseEntity.ok(jobService.getById(id));
+    }
+
+
+
+
     @GetMapping
     public ResponseEntity<List<JobResponse>> getAllJobs() {
         return ResponseEntity.ok(jobService.getAllJobs());
@@ -38,6 +46,9 @@ public class JobController {
         return ResponseEntity.ok(jobService.getAllCvsForJobId(id));
 
     }
+
+
+
 
 
 
