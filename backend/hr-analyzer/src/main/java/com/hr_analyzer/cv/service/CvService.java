@@ -92,7 +92,7 @@ public class CvService {
         String cvContent = extractTextFromFile(file);
 
         try {
-            CvAnalysisResult aiData = cohereScoringService.analyzeCv(job.getDescriptionSnapshot(), cvContent);
+            CvAnalysisResult aiData = cohereScoringService.analyzeCv(job.getDescription(), cvContent);
 
             if (aiData == null
                     || aiData.getMatchPercentage() == null

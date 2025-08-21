@@ -33,6 +33,18 @@ public class AuthController {
 
     }
 
+
+    @PostMapping("/registerCandidat")
+    public ResponseEntity<Boolean> registerCandidat(
+            @RequestBody RegisterRequest request)
+    {
+
+        boolean success = authService.registerCandidat(request);
+        return ResponseEntity.ok(success);
+
+
+    }
+
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(
             @RequestBody LoginRequest request)

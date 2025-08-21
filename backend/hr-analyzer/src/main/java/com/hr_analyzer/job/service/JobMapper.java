@@ -16,9 +16,9 @@ public class JobMapper {
         return Job.builder()
                 .title(jobRequest.getTitle())
                 .company(jobRequest.getCompany())
-                .sourceUrl(jobRequest.getSourceUrl())
-                .externalId(jobRequest.getExternalId())
-                .descriptionSnapshot(jobRequest.getDescriptionSnapshot())
+                .location(jobRequest.getLocation())
+                .description(jobRequest.getDescription())
+                .createdAt(LocalDateTime.now())
                 .createdBy(user)
                 .build();
 
@@ -33,10 +33,8 @@ public class JobMapper {
                 .title(job.getTitle())
                 .company(job.getCompany())
                 .location(job.getLocation())
-                .sourceUrl(job.getSourceUrl())
-                .externalId(job.getExternalId())
-                .descriptionSnapshot(job.getDescriptionSnapshot())
-                .createdBy(job.getCreatedBy().getUsername())
+                .description(job.getDescription())
+                .createdBy(job.getCreatedBy().getEmail())
                 .createdAt(job.getCreatedAt())
                 .build();
     }

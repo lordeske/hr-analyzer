@@ -18,7 +18,8 @@ public class JwtService {
 
     public String generateToken(UserDetails user) {
         String role = (user instanceof CustomUserDetails)
-                ? ((CustomUserDetails) user).getRole()
+                ? ((CustomUserDetails) user).
+                getRole()
                 : "";
 
         return Jwts.builder()

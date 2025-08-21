@@ -40,16 +40,19 @@ public class AuthService {
     public boolean register(RegisterRequest request)
     {
 
-        Optional<User> existingUser = userRepository.findByUsername(request.getUsername());
+        Optional<User> existingUser = userRepository.findByEmailOrPhone(request.getEmail(), request.getPhone());
 
         if(existingUser.isPresent())
         {
-            throw new UserAlreadyExistsException("Korisnik sa tim usernameom vec postoji");
+            throw new UserAlreadyExistsException("Korisnik sa tim podacima vec postoji");
         }
 
 
         var user = User.builder()
-                .username(request.getUsername())
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .email(request.getEmail())
+                .phone(request.getPhone())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.HR)
                 .build();
@@ -61,12 +64,43 @@ public class AuthService {
 
     }
 
+    public boolean registerCandidat(RegisterRequest request)
+    {
+
+        Optional<User> existingUser = userRepository.findByEmail(request.getEmail());
+
+
+        if(existingUser.isPresent())
+        {
+            throw new UserAlreadyExistsException("Korisnik sa tim podacima vec postoji");
+        }
+
+        var user = User.builder()
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .email(request.getEmail())
+                .phone(request.getPhone())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(Role.CANDIDATE)
+                .build();
+
+        userRepository.save(user);
+
+        return true;
+
+
+    }
+
+
+
+
+
 
     public AuthResponse login(LoginRequest request)
     {
         Authentication authentication = authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
+                        request.getEmail(),
                         request.getPassword()
                 ));
 

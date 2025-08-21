@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -14,8 +16,8 @@ public class JobRequest {
     private String title;
     private String company;
     private String location;
-    private String sourceUrl;
-    private String externalId;
-    private String descriptionSnapshot;
+    private String description;
+    private BigDecimal salary;
+
 
 }

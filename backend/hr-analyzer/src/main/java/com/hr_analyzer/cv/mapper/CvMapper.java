@@ -42,7 +42,7 @@ public class CvMapper {
                 .jobTitle(cv.getJob().getTitle())
                 .matchScore(cv.getMatchScore())
                 .uploadTime(cv.getUploadTime())
-                .uploadedByUsername(cv.getUploadedBy().getUsername())
+                .uploadedByUsername(cv.getUploadedBy().getEmail())
                 .suggestion(cv.getSuggestions().stream().map(CvSuggestion::getSuggestionText).toList())
                 .build();
 

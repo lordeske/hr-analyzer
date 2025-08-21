@@ -13,9 +13,7 @@ public class JobResponse {
     private String title;
     private String company;
     private String location;
-    private String sourceUrl;
-    private String externalId;
-    private String descriptionSnapshot;
+    private String description;
     private String createdBy;
     private LocalDateTime createdAt;
 }
