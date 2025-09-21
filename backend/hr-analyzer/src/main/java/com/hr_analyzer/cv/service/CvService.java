@@ -76,13 +76,11 @@ public class CvService {
 
 
     @Transactional
-    public void uploadCvWithFile(MultipartFile file , Long jobId,
-                                 String firstName, String lastName,
-                                 String email, String phone) {
+    public void uploadCvWithFile(MultipartFile file , Long jobId) {
 
 
 
-        User uploader = SecurityUtils.getCurrentUser()
+        User candidate = SecurityUtils.getCurrentUser()
                 .orElseThrow(() -> new IllegalStateException("Nema ulogovanog korisnika"));
 
         Job job = jobRepository.findById(jobId)
@@ -108,16 +106,9 @@ public class CvService {
                 throw new AiAnalysisException("Greska kod AI analize, vratio je los match score");
             }
 
-            CvUploadRequest cvUploadRequest = CvUploadRequest.builder()
-                    .candidateFirstName(firstName)
-                    .candidateLastName(lastName)
-                    .phoneNumber(phone)
-                    .email(email)
-                    .jobId(jobId)
-                    .cvContent(cvContent)
-                    .build();
 
-            Cv cv = CvMapper.mapToCv(cvUploadRequest, uploader, job, aiData.getMatchPercentage());
+
+            Cv cv = CvMapper.mapToCv(candidate,cvContent , job, aiData.getMatchPercentage());
             cvRepository.save(cv);
 
 
@@ -165,8 +156,8 @@ public class CvService {
 
             String keyword = request.getKeyword().toLowerCase();
             stream = stream.filter(cv ->
-                    cv.getCandidateFirstName().toLowerCase().contains(keyword) ||
-                            cv.getCandidateLastName().toLowerCase().contains(keyword) ||
+                    cv.getCandidate().getFirstName().toLowerCase().contains(keyword) ||
+                            cv.getCandidate().getLastName().toLowerCase().contains(keyword) ||
                             cv.getJob().getTitle().toLowerCase().contains(keyword)
 
             );

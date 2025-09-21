@@ -21,6 +21,5 @@ public class CvResponse {
     private String jobTitle;
     private Double matchScore;
     private LocalDateTime uploadTime;
-    private String uploadedByUsername;
     private List<String> suggestion;
 }

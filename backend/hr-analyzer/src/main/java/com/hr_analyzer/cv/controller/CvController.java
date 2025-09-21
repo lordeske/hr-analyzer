@@ -53,15 +53,13 @@ public class CvController {
     @PostMapping(value = "/uploadCvFile" , consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadCvFile(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("jobId") @NotNull @Positive(message = "jobID mora da bude pozitivan") Long jobId,
-            @RequestParam("firstName") @NotBlank(message = "Ime je obavezno") String firstName,
-            @RequestParam("lastName") @NotBlank(message = "Prezime je obavezno") String lastname,
-            @RequestParam("email") @Email(message = "Email nije validan") String email,
-            @RequestParam("phone") @Pattern(regexp = "^\\+?[1-9]\\d{7,14}$", message = "Telefon nije validan") String phone
+            @RequestParam("jobId") @NotNull @Positive(message = "jobID mora da bude pozitivan") Long jobId
+
+
     )
     {
 
-        cvService.uploadCvWithFile(file, jobId, firstName, lastname, email, phone);
+        cvService.uploadCvWithFile(file, jobId);
         return ResponseEntity.ok("CV uspesno uploadovan");
 
 

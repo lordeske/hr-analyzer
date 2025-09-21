@@ -24,20 +24,14 @@ public class Cv {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String candidateFirstName;
-    private String candidateLastName;
-    private String email;
-    private String phoneNumber;
+    @ManyToOne
+    @JoinColumn(name = "candidate_id")
+    private User candidate;
 
     @Column(length = 10000)
     private String cvContent;
 
     private LocalDateTime uploadTime;
-
-    @ManyToOne
-    @JoinColumn(name = "uploaded_by_id")
-    private User uploadedBy; // HR
-
 
     @ManyToOne
     @JoinColumn(name = "job_id")

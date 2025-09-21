@@ -67,7 +67,7 @@ public class AuthService {
     public boolean registerCandidat(RegisterRequest request)
     {
 
-        Optional<User> existingUser = userRepository.findByEmail(request.getEmail());
+        Optional<User> existingUser = userRepository.findByEmailOrPhone(request.getEmail(), request.getPhone());
 
 
         if(existingUser.isPresent())

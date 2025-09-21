@@ -8,6 +8,7 @@ import com.hr_analyzer.cv.dto.CvUploadRequest;
 import com.hr_analyzer.cv.model.Cv;
 import com.hr_analyzer.cv.model.CvSuggestion;
 import com.hr_analyzer.job.model.Job;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -16,15 +17,11 @@ import java.time.LocalDateTime;
 public class CvMapper {
 
 
-    public static Cv mapToCv(CvUploadRequest request, User uploadedBy, Job job , Double aiData ) {
+    public static Cv mapToCv(User candidate, String cvContent ,Job job , Double aiData ) {
         return Cv.builder()
-                .candidateFirstName(request.getCandidateFirstName())
-                .candidateLastName(request.getCandidateLastName())
-                .email(request.getEmail())
-                .phoneNumber(request.getPhoneNumber())
-                .cvContent(request.getCvContent())
+                .candidate(candidate)
+                .cvContent(cvContent)
                 .uploadTime(LocalDateTime.now())
-                .uploadedBy(uploadedBy)
                 .job(job)
                 .matchScore(aiData)
                 .build();
@@ -35,14 +32,13 @@ public class CvMapper {
 
         return CvResponse.builder()
                 .id(cv.getId())
-                .candidateLastName(cv.getCandidateLastName())
-                .candidateFirstName(cv.getCandidateFirstName())
-                .email(cv.getEmail())
-                .phoneNumber(cv.getPhoneNumber())
+                .candidateLastName(cv.getCandidate().getLastName())
+                .candidateFirstName(cv.getCandidate().getLastName())
+                .email(cv.getCandidate().getEmail())
+                .phoneNumber(cv.getCandidate().getPhone())
                 .jobTitle(cv.getJob().getTitle())
                 .matchScore(cv.getMatchScore())
                 .uploadTime(cv.getUploadTime())
-                .uploadedByUsername(cv.getUploadedBy().getEmail())
                 .suggestion(cv.getSuggestions().stream().map(CvSuggestion::getSuggestionText).toList())
                 .build();
 

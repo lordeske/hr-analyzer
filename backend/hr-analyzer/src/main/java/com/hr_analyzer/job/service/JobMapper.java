@@ -19,6 +19,7 @@ public class JobMapper {
                 .location(jobRequest.getLocation())
                 .description(jobRequest.getDescription())
                 .createdAt(LocalDateTime.now())
+                .salary(jobRequest.getSalary())
                 .createdBy(user)
                 .build();
 
@@ -36,6 +37,7 @@ public class JobMapper {
                 .description(job.getDescription())
                 .createdBy(job.getCreatedBy().getEmail())
                 .createdAt(job.getCreatedAt())
+                .salary(job.getSalary())
                 .build();
     }
 
