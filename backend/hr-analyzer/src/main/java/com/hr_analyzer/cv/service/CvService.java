@@ -7,6 +7,7 @@ import com.hr_analyzer.cv.dto.CvResponse;
 import com.hr_analyzer.cv.dto.CvSearchRequest;
 import com.hr_analyzer.cv.dto.CvUploadRequest;
 import com.hr_analyzer.cv.exception.AiAnalysisException;
+import com.hr_analyzer.cv.exception.CvNotFoundException;
 import com.hr_analyzer.cv.mapper.CvMapper;
 import com.hr_analyzer.cv.model.Cv;
 import com.hr_analyzer.cv.model.CvSuggestion;
@@ -201,6 +202,40 @@ public class CvService {
     }
 
 
+    public List<CvResponse> getLoggedUsersCvs() {
+
+
+
+        User user = SecurityUtils.getCurrentUser()
+                .orElseThrow(() -> new IllegalStateException("Nisi ologovan, token ne valja"));
+
+
+
+            List<Cv> cvs = cvRepository.findByCandidate(user);
+
+            if (cvs.isEmpty())
+            {
+                throw new CvNotFoundException("Nema CV-ova za ovog korisnika");
+            }
+
+
+
+
+
+        return cvs.stream()
+                .map(CvMapper::mapToResponse)
+                .collect(Collectors.toList());
+
+
+    }
+
+
+
+
+
+
+
+
 
     /// funkcije
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -263,11 +298,6 @@ public class CvService {
             throw new RuntimeException("CV ne sadrži dovoljno teksta za analizu (minimum " + MIN_TEXT_LENGTH + " karaktera).");
         }
     }
-
-
-
-
-
 
 
 

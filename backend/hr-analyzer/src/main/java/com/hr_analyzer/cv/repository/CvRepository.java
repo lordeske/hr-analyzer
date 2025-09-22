@@ -1,5 +1,6 @@
 package com.hr_analyzer.cv.repository;
 
+import com.hr_analyzer.auth.model.User;
 import com.hr_analyzer.cv.dto.CvResponse;
 import com.hr_analyzer.cv.model.Cv;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,4 +17,6 @@ public interface CvRepository extends JpaRepository<Cv,Long> {
 
 
     List<Cv> findByJobId(Long jobId);
+
+    List<Cv> findByCandidate(User user);
 }
