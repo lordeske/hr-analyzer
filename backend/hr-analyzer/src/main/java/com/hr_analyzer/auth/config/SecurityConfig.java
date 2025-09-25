@@ -47,9 +47,10 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         auth -> auth
-                                .requestMatchers("api/auth/**").permitAll()
-                                .requestMatchers("api/jobs/create").hasRole("HR")
-                                .requestMatchers("api/cv/uploadCvFile").hasRole("CANDIDATE")
+                                .requestMatchers("/api/auth/**").permitAll()
+                                .requestMatchers("/api/jobs/create").hasRole("HR")
+                                .requestMatchers("/api/jobs/*/cvs").hasRole("HR")
+                                .requestMatchers("/api/cv/uploadCvFile").hasRole("CANDIDATE")
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

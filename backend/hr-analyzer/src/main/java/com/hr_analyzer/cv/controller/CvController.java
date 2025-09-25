@@ -2,6 +2,7 @@ package com.hr_analyzer.cv.controller;
 
 
 
+import com.hr_analyzer.auth.dto.CandidateResponse;
 import com.hr_analyzer.cv.dto.CvResponse;
 import com.hr_analyzer.cv.dto.CvSearchRequest;
 import com.hr_analyzer.cv.service.CvService;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -94,6 +96,20 @@ public class CvController {
     }
 
 
+
+    @PreAuthorize("hasRole('HR')")
+    @GetMapping("/top/{id}")
+    public ResponseEntity<List<CandidateResponse>> getTopCandidateForJob(
+            @PathVariable Long id
+    )
+    {
+
+
+        List<CandidateResponse> candidateResponseList = cvService.getTopCandidatesForJob(id);
+        return ResponseEntity.ok(candidateResponseList);
+
+
+    }
 
 
 

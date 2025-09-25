@@ -1,6 +1,7 @@
 package com.hr_analyzer.cv.mapper;
 
 
+import com.hr_analyzer.auth.dto.CandidateResponse;
 import com.hr_analyzer.auth.model.User;
 import com.hr_analyzer.cv.dto.CvAnalysisResult;
 import com.hr_analyzer.cv.dto.CvResponse;
@@ -12,6 +13,8 @@ import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 public class CvMapper {
@@ -41,6 +44,30 @@ public class CvMapper {
                 .uploadTime(cv.getUploadTime())
                 .suggestion(cv.getSuggestions().stream().map(CvSuggestion::getSuggestionText).toList())
                 .build();
+
+    }
+
+
+    public static CandidateResponse mapToCandidate(Cv cv)
+    {
+
+        return CandidateResponse.builder()
+                .fullName(String.join(" ",
+                        Optional.ofNullable(cv.getCandidate().getFirstName()).orElse(""),
+                        Optional.ofNullable(cv.getCandidate().getLastName()).orElse("")
+                ).trim())
+                .email(cv.getCandidate().getEmail())
+                .phone(cv.getCandidate().getEmail())
+                .cvContent(cv.getCvContent())
+                .matchScore(cv.getMatchScore())
+                .suggestions(
+                        cv.getSuggestions()
+                                .stream()
+                                .map(CvSuggestion::getSuggestionText)
+                                .collect(Collectors.toList())
+                )
+                .build();
+
 
     }
 

@@ -1,6 +1,7 @@
 package com.hr_analyzer.cv.service;
 
 import com.hr_analyzer.auth.config.SecurityUtils;
+import com.hr_analyzer.auth.dto.CandidateResponse;
 import com.hr_analyzer.auth.model.User;
 import com.hr_analyzer.cv.dto.CvAnalysisResult;
 import com.hr_analyzer.cv.dto.CvResponse;
@@ -24,11 +25,16 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Security;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -226,6 +232,34 @@ public class CvService {
                 .map(CvMapper::mapToResponse)
                 .collect(Collectors.toList());
 
+
+    }
+
+
+    public List<CandidateResponse> getTopCandidatesForJob(Long id) {
+
+        User user = SecurityUtils.getCurrentUser()
+                .orElseThrow(() -> new IllegalStateException("Nisi ologovan, token ne valja"));
+
+
+        Job job = jobRepository.findById(id)
+                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ne postoji posao sa ID: " + id));
+
+
+        if(!user.equals(job.getCreatedBy()))
+        {
+
+            throw new AccessDeniedException("Ne možeš da gledaš CV-ove za posao koji nisi ti kreirao");
+
+        }
+
+
+        List<Cv> top3Cvs = cvRepository.findTop3ByJobIdOrderByMatchScoreDesc(id);
+
+
+        return top3Cvs.stream()
+                .map(CvMapper::mapToCandidate)
+                .collect(Collectors.toList());
 
     }
 

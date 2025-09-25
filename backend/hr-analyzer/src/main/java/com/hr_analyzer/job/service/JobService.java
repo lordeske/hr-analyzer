@@ -2,6 +2,7 @@ package com.hr_analyzer.job.service;
 
 
 import com.hr_analyzer.auth.config.SecurityUtils;
+import com.hr_analyzer.auth.dto.CandidateResponse;
 import com.hr_analyzer.auth.model.User;
 import com.hr_analyzer.cv.dto.CvResponse;
 import com.hr_analyzer.cv.exception.CvNotFoundException;
@@ -11,6 +12,7 @@ import com.hr_analyzer.cv.repository.CvRepository;
 import com.hr_analyzer.job.model.Job;
 import com.hr_analyzer.job.model.JobRequest;
 import com.hr_analyzer.job.model.JobResponse;
+import com.hr_analyzer.job.model.JobSearchRequest;
 import com.hr_analyzer.job.repository.JobRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +22,10 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class JobService {
@@ -130,4 +134,65 @@ public class JobService {
 
 
     }
+
+
+    public List<JobResponse> advancedSearchJob(JobSearchRequest request)
+    {
+
+        List<Job> jobs = jobRepository.findAll();
+
+        Stream<Job> stream = jobs.stream();
+
+        if(request.getKeyword() != null && request.getKeyword().isBlank())
+        {
+
+            String keyword = request.getKeyword().toLowerCase();
+
+            stream.filter(job ->
+                    job.getTitle().toLowerCase().contains(keyword) ||
+                    job.getCompany().toLowerCase().contains(keyword) ||
+                    job.getLocation().toLowerCase().contains(keyword));
+
+
+        }
+
+
+        if(request.getMinSalary() != null)
+        {
+            stream = stream.filter(job -> job.getSalary().compareTo(request.getMinSalary()) >= 0);
+        }
+        if(request.getMaxSalary() != null)
+        {
+            stream = stream.filter(job -> job.getSalary().compareTo(request.getMaxSalary()) <= 0);
+        }
+
+
+        Comparator<Job> comparator;
+
+        if("createdAt".equalsIgnoreCase(request.getSortBy()))
+        {
+            comparator = Comparator.comparing(Job::getCreatedAt);
+        }
+        else
+        {
+            comparator = Comparator.comparing(Job::getSalary);
+        }
+
+
+        if("desc".equalsIgnoreCase(request.getSortDirection()))
+        {
+
+            comparator = comparator.reversed();
+        }
+
+
+
+        return stream
+                .sorted(comparator)
+                .map(JobMapper::mapToResponse)
+                .collect(Collectors.toList());
+
+    }
+
+
 }

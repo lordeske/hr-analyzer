@@ -1,10 +1,13 @@
 package com.hr_analyzer.job.controller;
 
+import com.hr_analyzer.auth.dto.CandidateResponse;
 import com.hr_analyzer.cv.dto.CvResponse;
 import com.hr_analyzer.cv.exception.ResponseStatusException;
+import com.hr_analyzer.job.model.Job;
 import com.hr_analyzer.job.model.JobRequest;
 import com.hr_analyzer.job.model.JobResponse;
 import com.hr_analyzer.job.model.JobSearchRequest;
+import com.hr_analyzer.job.repository.JobRepository;
 import com.hr_analyzer.job.service.JobService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,6 +22,7 @@ import java.util.List;
 public class JobController {
     @Autowired
     private JobService jobService;
+
 
 
 
@@ -83,10 +87,14 @@ public class JobController {
     )
     {
 
+        List<JobResponse> jobResponses = jobService.advancedSearchJob(jobSearchRequest);
 
+        return ResponseEntity.ok(jobResponses);
         
 
     }
+
+
 
 
 
