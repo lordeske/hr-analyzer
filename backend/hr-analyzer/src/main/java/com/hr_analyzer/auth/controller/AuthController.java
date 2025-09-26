@@ -5,6 +5,7 @@ import com.hr_analyzer.auth.dto.AuthResponse;
 import com.hr_analyzer.auth.dto.LoginRequest;
 import com.hr_analyzer.auth.dto.RegisterRequest;
 import com.hr_analyzer.auth.services.AuthService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,13 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("api/auth")
+@RequiredArgsConstructor
+@RequestMapping("/api/auth")
 public class AuthController {
 
 
-    @Autowired
-    private AuthService authService;
-
+    private final AuthService authService;
 
 
     @PostMapping("/register")

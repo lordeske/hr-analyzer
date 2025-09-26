@@ -19,6 +19,7 @@ import com.hr_analyzer.job.model.Job;
 import com.hr_analyzer.job.repository.JobRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -42,22 +43,20 @@ import java.util.stream.Stream;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class CvService {
 
 
-    @Autowired
-    private CvRepository cvRepository;
 
-    @Autowired
-    private JobRepository jobRepository;
-    @Autowired
-    private CvScoringService cvScoringService;
+    private final CvRepository cvRepository;
 
-    @Autowired
-    private CohereScoringService cohereScoringService;
+    private final JobRepository jobRepository;
 
-    @Autowired
-    private CvSuggestionRepository cvSuggestionRepository;
+    private final CvScoringService cvScoringService;
+
+    private final CohereScoringService cohereScoringService;
+
+    private final CvSuggestionRepository cvSuggestionRepository;
 
 
     public List<CvResponse> getAllCvs()

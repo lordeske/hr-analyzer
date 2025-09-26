@@ -15,26 +15,35 @@ import com.hr_analyzer.job.model.JobResponse;
 import com.hr_analyzer.job.model.JobSearchRequest;
 import com.hr_analyzer.job.repository.JobRepository;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
+@RequiredArgsConstructor
 public class JobService {
 
-    @Autowired
-    private JobRepository jobRepository;
 
-    @Autowired
-    private CvRepository cvRepository;
+    private final JobRepository jobRepository;
+
+
+    private final CvRepository cvRepository;
 
 
 
@@ -55,45 +64,36 @@ public class JobService {
     }
 
 
-    public List<JobResponse> getAllJobs()
+    public Page<JobResponse> getAllJobs(Pageable pageable)
     {
 
-        return jobRepository.findAll()
-                .stream()
-                .map(JobMapper::mapToResponse)
-                .collect(Collectors.toList());
+        int size = Math.min(pageable.getPageSize(), 100);
+
+        pageable = PageRequest.of(pageable.getPageNumber(), size, pageable.getSort());
+
+        Page<Job> page = jobRepository.findAll(pageable);
+
+        return page.map(JobMapper::mapToResponse);
 
     }
 
 
-    public List<CvResponse> getAllCvsForJobId(Long jobId) {
-
-
-        List<Cv> cvList = cvRepository.findByJobId(jobId);
-
-
-        Job job = jobRepository.findById(jobId).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Ne postoji posao sa ID: " + jobId));
-
+    public Page<CvResponse> getAllCvsForJobId(Long jobId, Pageable pageable) {
 
         User user = SecurityUtils.getCurrentUser()
                 .orElseThrow(() -> new IllegalStateException("Nisi ologovan, token ne valja"));
 
+        Job job = jobRepository.findById(jobId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Ne postoji posao sa ID: " + jobId));
 
         if (!job.getCreatedBy().equals(user)) {
             throw new AccessDeniedException("Ne možeš da gledaš CV-ove za posao koji nisi ti kreirao");
         }
 
+        Page<Cv> cvList = cvRepository.findByJobId(jobId, pageable);
 
-        if (cvList.isEmpty()) {
-
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Niko se još nije prijavio za ovu poziciju");
-        }
-
-
-        return cvList.stream()
-                .map(CvMapper::mapToResponse)
-                .collect(Collectors.toList());
+        return cvList
+                .map(CvMapper::mapToResponse);
     }
 
 
@@ -110,87 +110,60 @@ public class JobService {
 
     }
 
-    public List<JobResponse> getMyJobs() {
+    public Page<JobResponse> getMyJobs(Pageable pageable) {
 
         User user = SecurityUtils.getCurrentUser()
                 .orElseThrow(() -> new IllegalStateException("Nisi ologovan, token ne valja"));
 
 
+        Page<Job> jobs  = jobRepository.findByCreatedBy(user, pageable);
 
-        List<Job> jobs  = jobRepository.findByCreatedBy(user);
-
-        if (jobs.isEmpty())
-        {
-            throw new CvNotFoundException("Jos nisi objavio nikakav posao");
-        }
-
-
-
-
-
-        return jobs.stream()
-                .map(JobMapper::mapToResponse)
-                .collect(Collectors.toList());
-
+        return jobs.map(JobMapper::mapToResponse);
 
     }
 
 
-    public List<JobResponse> advancedSearchJob(JobSearchRequest request)
+    public Page<JobResponse> advancedSearchJob(JobSearchRequest request, Pageable pageable)
     {
 
-        List<Job> jobs = jobRepository.findAll();
+        String keyword = Optional.ofNullable(request.getKeyword())
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .orElse(null);
 
-        Stream<Job> stream = jobs.stream();
-
-        if(request.getKeyword() != null && request.getKeyword().isBlank())
-        {
-
-            String keyword = request.getKeyword().toLowerCase();
-
-            stream.filter(job ->
-                    job.getTitle().toLowerCase().contains(keyword) ||
-                    job.getCompany().toLowerCase().contains(keyword) ||
-                    job.getLocation().toLowerCase().contains(keyword));
+        if(request.getMinSalary() != null && request.getMaxSalary() != null
+            && request.getMinSalary().compareTo(request.getMaxSalary()) > 0
+        )
+            throw new IllegalStateException("Minimalna zarada ne moze biti veca od maksimalne");
 
 
-        }
-
-
-        if(request.getMinSalary() != null)
-        {
-            stream = stream.filter(job -> job.getSalary().compareTo(request.getMinSalary()) >= 0);
-        }
-        if(request.getMaxSalary() != null)
-        {
-            stream = stream.filter(job -> job.getSalary().compareTo(request.getMaxSalary()) <= 0);
-        }
-
-
-        Comparator<Job> comparator;
-
-        if("createdAt".equalsIgnoreCase(request.getSortBy()))
-        {
-            comparator = Comparator.comparing(Job::getCreatedAt);
-        }
-        else
-        {
-            comparator = Comparator.comparing(Job::getSalary);
-        }
-
-
-        if("desc".equalsIgnoreCase(request.getSortDirection()))
-        {
-
-            comparator = comparator.reversed();
+        /// swap datuma radi sigurnosti
+        LocalDateTime from = request.getFrom();
+        LocalDateTime to   = request.getTo();
+        if (from != null && to != null && from.isAfter(to)) {
+            LocalDateTime tmp = from; from = to; to = tmp;
         }
 
 
 
-        return stream
-                .sorted(comparator)
-                .map(JobMapper::mapToResponse)
-                .collect(Collectors.toList());
+        Sort sort = pageable.getSort().isUnsorted() ? Sort.by(Sort.Direction.DESC, "createdAt")
+                : pageable.getSort();
+
+        pageable = PageRequest.of(
+                Math.max(0, pageable.getPageNumber()),
+                Math.min(pageable.getPageSize(), 100),
+                sort
+        );
+
+        Specification<Job> spec = Specification.where(JobSpecifications.keywordLike(keyword))
+                .and(JobSpecifications.createdBetween(from, to))
+                .and(JobSpecifications.minSalary(request.getMinSalary()))
+                .and(JobSpecifications.maxSalary(request.getMaxSalary()));
+
+        Page<Job> page = jobRepository.findAll(spec, pageable);
+
+        return page.map(JobMapper::mapToResponse);
+
 
     }
 
