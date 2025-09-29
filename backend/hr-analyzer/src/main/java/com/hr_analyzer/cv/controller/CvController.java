@@ -5,9 +5,14 @@ package com.hr_analyzer.cv.controller;
 import com.hr_analyzer.auth.dto.CandidateResponse;
 import com.hr_analyzer.cv.dto.CvResponse;
 import com.hr_analyzer.cv.dto.CvSearchRequest;
+import com.hr_analyzer.cv.model.CvMyResponse;
 import com.hr_analyzer.cv.service.CvService;
 import jakarta.validation.constraints.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -74,42 +79,64 @@ public class CvController {
 
 
 
-    @GetMapping(value = "/my-cvs")
-    public ResponseEntity<List<CvResponse>> getLoggedUsersCvs() {
-        try {
-            List<CvResponse> cvResponses = cvService.getLoggedUsersCvs();
-
-            if (cvResponses.isEmpty()) {
-
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(cvResponses);
-            }
-
-            return ResponseEntity.ok(cvResponses);
+//    @GetMapping(value = "/my-cvs")
+//    public ResponseEntity<List<CvResponse>> getLoggedUsersCvs() {
+//
+//            List<CvResponse> cvResponses = cvService.getLoggedUsersCvs();
+//
+//            return ResponseEntity.ok(cvResponses);
+//
+//    }
 
 
-        } catch (Exception ex) {
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Collections.emptyList());
-        }
+    @GetMapping(value = "/me/cvs")
+    @PreAuthorize("hasRole('CANDIDATE')")
+    public ResponseEntity<Page<CvMyResponse>> getLoggedUsersCvsSim(
+            @PageableDefault(size = 20, sort = "uploadTime", direction = Sort.Direction.DESC)
+            Pageable pageable
+    )
+    {
+
+        Page<CvMyResponse> cvMyResponseList = cvService.getLoggedUsersCvsSim(pageable);
+
+        return ResponseEntity.ok(cvMyResponseList);
+
     }
 
 
 
-    @PreAuthorize("hasRole('HR')")
-    @GetMapping("/top/{id}")
-    public ResponseEntity<List<CandidateResponse>> getTopCandidateForJob(
+    @GetMapping(value = "/{id}")
+    public ResponseEntity<CvResponse> getCv(
             @PathVariable Long id
     )
     {
 
+        return ResponseEntity.ok(cvService.getCv(id));
 
-        List<CandidateResponse> candidateResponseList = cvService.getTopCandidatesForJob(id);
+
+    }
+
+
+
+
+    @PreAuthorize("hasRole('HR')")
+    @GetMapping("/top/{id}/{n}")
+    public ResponseEntity<List<CandidateResponse>> getTopCandidateForJob(
+            @PathVariable Long id,
+            @RequestParam(name = "n", defaultValue = "5") Integer n,
+            @RequestParam(name = "minScore", required = false) Double minScore
+    )
+    {
+
+
+        List<CandidateResponse> candidateResponseList = cvService.getTopCandidatesForJob(id, n , minScore);
         return ResponseEntity.ok(candidateResponseList);
 
 
     }
+
+
 
 
 

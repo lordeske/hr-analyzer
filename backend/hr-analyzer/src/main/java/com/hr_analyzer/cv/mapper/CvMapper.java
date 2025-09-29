@@ -7,6 +7,7 @@ import com.hr_analyzer.cv.dto.CvAnalysisResult;
 import com.hr_analyzer.cv.dto.CvResponse;
 import com.hr_analyzer.cv.dto.CvUploadRequest;
 import com.hr_analyzer.cv.model.Cv;
+import com.hr_analyzer.cv.model.CvMyResponse;
 import com.hr_analyzer.cv.model.CvSuggestion;
 import com.hr_analyzer.job.model.Job;
 import org.springframework.cglib.core.Local;
@@ -67,6 +68,20 @@ public class CvMapper {
                                 .collect(Collectors.toList())
                 )
                 .build();
+
+
+    }
+
+    public static CvMyResponse mapTopCvMyResponse(Cv cv)
+    {
+
+        return CvMyResponse.builder()
+                .cvId(cv.getId())
+                .jobId(cv.getJob().getId())
+                .companyName(cv.getJob().getCompany())
+                .jobTitle(cv.getJob().getTitle())
+                .build();
+
 
 
     }

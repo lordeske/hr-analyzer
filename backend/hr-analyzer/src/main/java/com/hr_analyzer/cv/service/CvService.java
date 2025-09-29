@@ -11,6 +11,7 @@ import com.hr_analyzer.cv.exception.AiAnalysisException;
 import com.hr_analyzer.cv.exception.CvNotFoundException;
 import com.hr_analyzer.cv.mapper.CvMapper;
 import com.hr_analyzer.cv.model.Cv;
+import com.hr_analyzer.cv.model.CvMyResponse;
 import com.hr_analyzer.cv.model.CvSuggestion;
 import com.hr_analyzer.cv.repository.CvRepository;
 
@@ -26,7 +27,11 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.parameters.P;
@@ -35,9 +40,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Security;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -207,35 +210,35 @@ public class CvService {
     }
 
 
-    public List<CvResponse> getLoggedUsersCvs() {
+//    public List<CvResponse> getLoggedUsersCvs() {
+//
+//
+//
+//        User user = SecurityUtils.getCurrentUser()
+//                .orElseThrow(() -> new IllegalStateException("Nisi ologovan, token ne valja"));
+//
+//
+//
+//            List<Cv> cvs = cvRepository.findByCandidate(user);
+//
+//            if (cvs.isEmpty())
+//            {
+//                throw new CvNotFoundException("Nema CV-ova za ovog korisnika");
+//            }
+//
+//
+//
+//
+//
+//        return cvs.stream()
+//                .map(CvMapper::mapToResponse)
+//                .collect(Collectors.toList());
+//
+//
+//    }
 
 
-
-        User user = SecurityUtils.getCurrentUser()
-                .orElseThrow(() -> new IllegalStateException("Nisi ologovan, token ne valja"));
-
-
-
-            List<Cv> cvs = cvRepository.findByCandidate(user);
-
-            if (cvs.isEmpty())
-            {
-                throw new CvNotFoundException("Nema CV-ova za ovog korisnika");
-            }
-
-
-
-
-
-        return cvs.stream()
-                .map(CvMapper::mapToResponse)
-                .collect(Collectors.toList());
-
-
-    }
-
-
-    public List<CandidateResponse> getTopCandidatesForJob(Long id) {
+    public List<CandidateResponse> getTopCandidatesForJob(Long id , Integer n , Double minScore) {
 
         User user = SecurityUtils.getCurrentUser()
                 .orElseThrow(() -> new IllegalStateException("Nisi ologovan, token ne valja"));
@@ -245,7 +248,7 @@ public class CvService {
                 .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ne postoji posao sa ID: " + id));
 
 
-        if(!user.equals(job.getCreatedBy()))
+        if(!user.getId().equals(job.getCreatedBy().getId()))
         {
 
             throw new AccessDeniedException("Ne možeš da gledaš CV-ove za posao koji nisi ti kreirao");
@@ -253,15 +256,94 @@ public class CvService {
         }
 
 
-        List<Cv> top3Cvs = cvRepository.findTop3ByJobIdOrderByMatchScoreDesc(id);
+        Double threshold = (minScore == null) ? null
+                : Math.max(0.0, Math.min(minScore, 100.0));
 
 
-        return top3Cvs.stream()
+        int size = (n == null || n < 1 ) ? 5 : Math.min(n, 50);
+
+        Specification<Cv> spec = Specification.where(CvSpecifications.byJobId(id))
+                .and(CvSpecifications.minScore(threshold));
+
+        Sort sort = Sort.by(
+                Sort.Order.desc("matchScore"),
+                Sort.Order.desc("uploadTime"),
+                Sort.Order.asc("id")
+        );
+
+        PageRequest pr = PageRequest.of(0, size, sort);
+
+        Page<Cv> page = cvRepository.findAll(spec, pr);
+
+
+        return page.getContent().stream()
                 .map(CvMapper::mapToCandidate)
-                .collect(Collectors.toList());
-
+                .toList();
     }
 
+
+
+    public CvResponse getCv(Long id) {
+
+        User user = SecurityUtils.getCurrentUser()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Nisi ulogovan"));
+
+        Cv cv = cvRepository.findById(id)
+                .orElseThrow(() -> new CvNotFoundException("Ne postoji taj CV"));
+
+
+        Long userId = user.getId();
+        Long candidateId = cv.getCandidate().getId();
+        Long creatorId   = cv.getJob().getCreatedBy().getId();
+
+
+        if(!userId.equals(candidateId) && !userId.equals(creatorId))
+        {
+            throw new AccessDeniedException("Ne možeš da gledaš ovaj CV, nisi kandidat niti vlasnik posla");
+
+        }
+
+        return CvMapper.mapToResponse(cv);
+    }
+
+
+
+    public Page<CvMyResponse> getLoggedUsersCvsSim(Pageable pageable) {
+
+
+        User user = SecurityUtils.getCurrentUser()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Nisi ulogovan"));
+
+
+
+        int page = Math.max(0, pageable.getPageNumber());;
+        int size = Math.min(Math.max(1, pageable.getPageSize()), 50);
+
+        Set<String> allowedSorts = Set.of("uploadTime", "matchScore");
+
+        Sort requested  = pageable.getSort();
+        Sort safeSort = requested.isUnsorted()
+                ? Sort.by(Sort.Direction.DESC, "uploadTime")
+                : requested.stream()
+                .filter(o -> allowedSorts.contains(o.getProperty()))
+                .map(o -> o.with(o.getDirection()))
+                .collect(Sort::unsorted, Sort::and, Sort::and);
+
+        if(safeSort.isUnsorted())
+        {
+            safeSort = Sort.by(Sort.Direction.DESC, "uploadTime");
+        }
+
+
+        PageRequest pr = PageRequest.of(page, size, safeSort);
+
+        Page<Cv> cvs = cvRepository.findByCandidateId(user.getId(),pr);
+
+
+        return cvs.map(CvMapper::mapTopCvMyResponse);
+
+
+    }
 
 
 
