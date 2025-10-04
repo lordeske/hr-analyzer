@@ -41,7 +41,6 @@ public class JobSpecifications {
     {
         return ((root, query, criteriaBuilder) ->
                 (max == null) ? null : criteriaBuilder.lessThanOrEqualTo(root.get("salay"), max));
-
     }
 
     public static Specification<Job> createdBetween(LocalDateTime from, LocalDateTime to) {

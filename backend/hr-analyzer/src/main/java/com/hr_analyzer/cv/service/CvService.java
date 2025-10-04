@@ -9,6 +9,8 @@ import com.hr_analyzer.cv.dto.CvSearchRequest;
 import com.hr_analyzer.cv.dto.CvUploadRequest;
 import com.hr_analyzer.cv.exception.AiAnalysisException;
 import com.hr_analyzer.cv.exception.CvNotFoundException;
+import com.hr_analyzer.cv.exception.EmptyCvContentException;
+import com.hr_analyzer.cv.kafka.CvUploadMessage;
 import com.hr_analyzer.cv.mapper.CvMapper;
 import com.hr_analyzer.cv.model.Cv;
 import com.hr_analyzer.cv.model.CvMyResponse;
@@ -33,6 +35,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
@@ -84,21 +90,33 @@ public class CvService {
     }
 
 
+
+    /// moram promijeniti logiku zbog retrya da moze opet da ga pusti kroz kafka queue
+    @KafkaListener(topics = "cv-upload-topic" , groupId = "cv-group")
     @Transactional
-    public void uploadCvWithFile(MultipartFile file , Long jobId) {
+    @Retryable(
+           maxAttempts = 3,
+            backoff = @Backoff(delay = 5000)
+    )
+    public void consumeCvUploadMessage(CvUploadMessage message) {
+
+            log.info("RADIM");
 
 
+            User candidate = SecurityUtils.getCurrentUser()
+                    .orElseThrow(() -> new IllegalStateException("Nema ulogovanog korisnika"));
 
-        User candidate = SecurityUtils.getCurrentUser()
-                .orElseThrow(() -> new IllegalStateException("Nema ulogovanog korisnika"));
-
-        Job job = jobRepository.findById(jobId)
-                .orElseThrow(() -> new EntityNotFoundException("Posao nije pronadjen"));
+            Job job = jobRepository.findById(message.getJobId())
+                    .orElseThrow(() -> new EntityNotFoundException("Posao nije pronadjen"));
 
 
-        String cvContent = extractTextFromFile(file);
+            String cvContent = extractTextFromFile(message.getFile());
 
-        try {
+            if (cvContent == null || cvContent.isEmpty()) {
+                throw new EmptyCvContentException("CV koji ste predali je prazan, molimo upisite nesto u njega");
+            }
+
+
             CvAnalysisResult aiData = cohereScoringService.analyzeCv(job.getDescription(), cvContent);
 
             if (aiData == null
@@ -110,14 +128,12 @@ public class CvService {
 
             }
 
-            if(aiData.getMatchPercentage() > 100 || aiData.getMatchPercentage() < 0)
-            {
+            if (aiData.getMatchPercentage() > 100 || aiData.getMatchPercentage() < 0) {
                 throw new AiAnalysisException("Greska kod AI analize, vratio je los match score");
             }
 
 
-
-            Cv cv = CvMapper.mapToCv(candidate,cvContent , job, aiData.getMatchPercentage());
+            Cv cv = CvMapper.mapToCv(candidate, cvContent, job, aiData.getMatchPercentage());
             cvRepository.save(cv);
 
 
@@ -134,14 +150,6 @@ public class CvService {
             cvSuggestionRepository.saveAll(suggestionEntities);
 
 
-        }
-        catch (Exception ex)
-        {
-            log.error("AI analiza nije uspela za jobId={} (title={})", job.getId(), job.getTitle(), ex);
-            throw ex;
-
-
-        }
 
     }
 

@@ -14,6 +14,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import javax.naming.ContextNotEmptyException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -164,6 +165,17 @@ public class GlobalExceptionHandler {
         body.put("error", ex.getMessage());
 
         return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(ContextNotEmptyException.class)
+    public ResponseEntity<Map<String, Object>> handleContextNotEmptyException(ContextNotEmptyException ex)
+    {
+        Map<String, Object> body = new HashMap<>();
+        body.put("status",HttpStatus.BAD_REQUEST);
+        body.put("error",ex.getMessage());
+
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+
     }
 
 

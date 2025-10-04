@@ -5,6 +5,7 @@ package com.hr_analyzer.cv.controller;
 import com.hr_analyzer.auth.dto.CandidateResponse;
 import com.hr_analyzer.cv.dto.CvResponse;
 import com.hr_analyzer.cv.dto.CvSearchRequest;
+import com.hr_analyzer.cv.kafka.CvKafkaProducer;
 import com.hr_analyzer.cv.model.CvMyResponse;
 import com.hr_analyzer.cv.service.CvService;
 import jakarta.validation.constraints.*;
@@ -33,6 +34,9 @@ public class CvController {
     @Autowired
     private CvService cvService;
 
+
+    @Autowired
+    private CvKafkaProducer kafkaProducer;
 
 //    @GetMapping("/all")
 //    public ResponseEntity<List<CvResponse>> getAllCvs()
@@ -70,7 +74,7 @@ public class CvController {
     )
     {
 
-        cvService.uploadCvWithFile(file, jobId);
+        kafkaProducer.sendCvUploadMessage(file, jobId);
         return ResponseEntity.ok("CV uspesno uploadovan");
 
 
