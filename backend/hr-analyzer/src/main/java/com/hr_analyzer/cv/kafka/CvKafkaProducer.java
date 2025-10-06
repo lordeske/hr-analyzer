@@ -18,11 +18,11 @@ public class CvKafkaProducer {
 
 
 
-    public void sendCvUploadMessage(MultipartFile file , Long jobId)
+    public void sendCvUploadMessage(CvUploadMessage cvUploadMessage)
     {
 
-        CvUploadMessage message = new CvUploadMessage(file, jobId);
-        kafkaTemplate.send(TOPIC, message);
+
+        kafkaTemplate.send(TOPIC, cvUploadMessage);
 
     }
 

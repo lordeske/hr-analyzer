@@ -12,8 +12,10 @@ import org.springframework.web.multipart.MultipartFile;
 @NoArgsConstructor
 public class CvUploadMessage {
 
-    private MultipartFile file;
+    private byte[] file;
     private Long jobId;
+    private String mimeType;
+    private String  email;
 
 
 

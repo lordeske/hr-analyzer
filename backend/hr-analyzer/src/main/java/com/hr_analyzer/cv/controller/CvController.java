@@ -2,10 +2,12 @@ package com.hr_analyzer.cv.controller;
 
 
 
+import com.hr_analyzer.auth.config.SecurityUtils;
 import com.hr_analyzer.auth.dto.CandidateResponse;
 import com.hr_analyzer.cv.dto.CvResponse;
 import com.hr_analyzer.cv.dto.CvSearchRequest;
 import com.hr_analyzer.cv.kafka.CvKafkaProducer;
+import com.hr_analyzer.cv.kafka.CvUploadMessage;
 import com.hr_analyzer.cv.model.CvMyResponse;
 import com.hr_analyzer.cv.service.CvService;
 import jakarta.validation.constraints.*;
@@ -22,6 +24,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -71,10 +74,18 @@ public class CvController {
             @RequestParam("jobId") @NotNull @Positive(message = "jobID mora da bude pozitivan") Long jobId
 
 
-    )
-    {
+    ) throws IOException {
 
-        kafkaProducer.sendCvUploadMessage(file, jobId);
+
+        String userEmail = SecurityUtils.getCurrentUser()
+                .orElseThrow(()-> new IllegalStateException("Nema ulogovanog korisnika")).getEmail();
+
+
+        byte [] fileByte = file.getBytes();
+
+        CvUploadMessage message = new CvUploadMessage(fileByte, jobId, file.getContentType() ,userEmail );
+
+        kafkaProducer.sendCvUploadMessage(message);
         return ResponseEntity.ok("CV uspesno uploadovan");
 
 

@@ -3,6 +3,7 @@ package com.hr_analyzer.cv.service;
 import com.hr_analyzer.auth.config.SecurityUtils;
 import com.hr_analyzer.auth.dto.CandidateResponse;
 import com.hr_analyzer.auth.model.User;
+import com.hr_analyzer.auth.repository.UserRepository;
 import com.hr_analyzer.cv.dto.CvAnalysisResult;
 import com.hr_analyzer.cv.dto.CvResponse;
 import com.hr_analyzer.cv.dto.CvSearchRequest;
@@ -29,6 +30,7 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.core.Local;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -45,7 +47,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.security.Security;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -66,6 +72,8 @@ public class CvService {
     private final CohereScoringService cohereScoringService;
 
     private final CvSuggestionRepository cvSuggestionRepository;
+
+    private final UserRepository userRepository;
 
 
     public List<CvResponse> getAllCvs()
@@ -91,26 +99,34 @@ public class CvService {
 
 
 
-    /// moram promijeniti logiku zbog retrya da moze opet da ga pusti kroz kafka queue
+
     @KafkaListener(topics = "cv-upload-topic" , groupId = "cv-group")
     @Transactional
-    @Retryable(
-           maxAttempts = 3,
-            backoff = @Backoff(delay = 5000)
-    )
+//    @Retryable(
+//           maxAttempts = 3,
+//            backoff = @Backoff(delay = 5000)
+//    )
     public void consumeCvUploadMessage(CvUploadMessage message) {
 
-            log.info("RADIM");
+            log.info("Primio sam poruku iz Kafka: RADIM");
+            log.info("Sending CV message for email: {}", message.getEmail());
 
 
-            User candidate = SecurityUtils.getCurrentUser()
-                    .orElseThrow(() -> new IllegalStateException("Nema ulogovanog korisnika"));
+        User candidate = userRepository.findByEmail(message.getEmail())
+                .orElseThrow(() -> new IllegalStateException("Korisnik ne postoji"));
+
 
             Job job = jobRepository.findById(message.getJobId())
                     .orElseThrow(() -> new EntityNotFoundException("Posao nije pronadjen"));
 
 
-            String cvContent = extractTextFromFile(message.getFile());
+            InputStream fileStream = new ByteArrayInputStream(message.getFile());
+            String fileName = generateFileName(candidate.getId().toString());
+            String mimType = message.getMimeType();
+            long fileSize = message.getFile().length;
+
+
+            String cvContent = extractTextFromFile(fileStream, fileName, mimType, fileSize);
 
             if (cvContent == null || cvContent.isEmpty()) {
                 throw new EmptyCvContentException("CV koji ste predali je prazan, molimo upisite nesto u njega");
@@ -364,15 +380,18 @@ public class CvService {
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
     private static final int MIN_TEXT_LENGTH = 500;
 
-    private String extractTextFromFile(MultipartFile file) {
+    private String extractTextFromFile(InputStream fileSteam, String filename, String mimeType, long fileSize) {
         try {
 
-            if (file.isEmpty() || file.getOriginalFilename() == null) {
-                throw new RuntimeException("Fajl nije dostavljen ili nema naziv.");
+
+
+            if(fileSteam == null || filename == null)
+            {
+                throw new RuntimeException("Faijl nije dostavljen ili nema naziv");
             }
 
-            String filename = file.getOriginalFilename().toLowerCase();
-            String mimeType = file.getContentType();
+
+            String lowerFileName = filename.toLowerCase();
 
 
             boolean isPdf = (mimeType != null && mimeType.equals("application/pdf")) || filename.endsWith(".pdf");
@@ -384,13 +403,13 @@ public class CvService {
             }
 
 
-            if (file.getSize() > MAX_FILE_SIZE) {
+            if (fileSize > MAX_FILE_SIZE) {
                 throw new RuntimeException("Fajl je prevelik (maksimalno " + (MAX_FILE_SIZE / (1024 * 1024)) + "MB)");
             }
 
 
             if (isPdf) {
-                try (PDDocument document = PDDocument.load(file.getInputStream())) {
+                try (PDDocument document = PDDocument.load(fileSteam)) {
                     PDFTextStripper stripper = new PDFTextStripper();
                     String text = stripper.getText(document);
                     validateExtractedText(text);
@@ -400,7 +419,7 @@ public class CvService {
 
 
             if (isDocx) {
-                try (XWPFDocument doc = new XWPFDocument(file.getInputStream());
+                try (XWPFDocument doc = new XWPFDocument(fileSteam);
                      XWPFWordExtractor extractor = new XWPFWordExtractor(doc)) {
                     String text = extractor.getText();
                     validateExtractedText(text);
@@ -420,6 +439,19 @@ public class CvService {
         if (text == null || text.trim().length() < MIN_TEXT_LENGTH) {
             throw new RuntimeException("CV ne sadrži dovoljno teksta za analizu (minimum " + MIN_TEXT_LENGTH + " karaktera).");
         }
+    }
+
+
+    public String generateFileName(String candidateId)
+    {
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        String dateString = LocalDateTime.now().format(formatter);
+
+        return dateString + "_" + candidateId;
+
+
+
     }
 
 

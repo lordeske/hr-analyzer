@@ -45,6 +45,7 @@ public class CohereScoringService {
         String prompt = String.format("""
             You are an HR expert AI.
             Evaluate how well the following CV matches the provided job description. Consider skills, experience, education, and relevant technologies.
+            Please make sure the suggestions are in the language in which the CV was submitted.
             Respond STRICTLY in this JSON format:
             {
               "matchPercentage": <number from 0 to 100>,
