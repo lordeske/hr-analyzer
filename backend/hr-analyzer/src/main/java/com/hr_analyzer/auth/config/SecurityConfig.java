@@ -50,6 +50,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(
                         auth -> auth
                                 .requestMatchers("/api/auth/**").permitAll()
+                                .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
                                 .requestMatchers("/api/jobs/create").hasRole("HR")
                                 .requestMatchers("/api/jobs/*/cvs").hasRole("HR")
                                 .requestMatchers("/api/cv/uploadCvFile").hasRole("CANDIDATE")
