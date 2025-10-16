@@ -1,0 +1,169 @@
+/* Stranica — pozadina */
+.page {
+  min-height: 100vh;
+  background: #080710;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  font-family: "Poppins", sans-serif;
+  color: #fff;
+}
+
+/* Kartica */
+.card {
+  width: 100%;
+  max-width: 920px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  box-shadow: 0 20px 50px rgba(8, 7, 16, 0.6);
+  padding: 40px 48px;
+}
+
+/* Naslovi i tekst */
+.card h1 {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.card p {
+  margin-top: 6px;
+  opacity: 0.9;
+  font-size: 15px;
+}
+
+/* Forma */
+.form {
+  margin-top: 22px;
+  display: grid;
+  gap: 16px;
+}
+
+/* File input — moderan izgled */
+.form input[type="file"] {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px dashed rgba(255, 255, 255, 0.35);
+  color: #eaeaea;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.form input[type="file"]:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Dugme unutar file inputa (Chrome/Edge itd.) */
+.form input[type="file"]::file-selector-button {
+  margin-right: 12px;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: #ffffff;
+  color: #080710;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.form input[type="file"]::file-selector-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.28);
+}
+
+/* Alert poruka */
+.alert {
+  margin-top: 4px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 71, 87, 0.18);
+  border: 1px solid rgba(255, 71, 87, 0.45);
+  color: #ffd6da;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Dugmad */
+.button,
+.buttonGhost {
+  appearance: none;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+  font-size: 15px;
+}
+
+.button {
+  background: #ffffff;
+  color: #080710;
+}
+
+.button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.32);
+}
+
+.buttonGhost {
+  background: rgba(255, 255, 255, 0.22);
+  color: #080710;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.buttonGhost:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.28);
+}
+
+/* Disabled state (kada je loading) */
+.button[disabled],
+.buttonGhost[disabled] {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* (Opcionalno) Overlay + spinner  — ako poželiš globalni loading */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 7, 16, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+  color: #fff;
+  text-align: center;
+  padding: 20px;
+}
+
+.spinner {
+  width: 56px;
+  height: 56px;
+  border: 5px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .card {
+    padding: 28px 20px;
+  }
+  .card h1 {
+    font-size: 28px;
+  }
+}

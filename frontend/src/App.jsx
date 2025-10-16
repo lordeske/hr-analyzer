@@ -2,6 +2,9 @@ import { Routes, Route, Link } from "react-router-dom";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterCandidate from "./pages/RegisterCandidate.jsx";
 import RegisterHR from "./pages/RegisterHR.jsx";
+import JobDetails from "./pages/JobDetails.jsx";
+import JobsList from "./pages/JobsList.jsx";
+import ApplyCvPage from "./pages/ApplyCvPage.jsx";
 
 export default function App() {
   return (
@@ -9,8 +12,13 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/register-cand" element={<RegisterCandidate />} />
+        <Route path="/register-candidate" element={<RegisterCandidate />} />
         <Route path="/register-hr" element={<RegisterHR />} />
+        <Route path="/job/:id" element={<JobDetails />} />
+        <Route path="/jobs" element={<JobsList />} />
+        <Route path="/apply/:jobId" element={<ApplyCvPage />} />
+        
+
       </Routes>
     </>
   );
@@ -36,7 +44,7 @@ function Home() {
             Idi na Login
           </Link>
           <Link
-            to="/register-cand"
+            to="/register-candidate"
             style={{
               background: "#fff",
               color: "#080710",
