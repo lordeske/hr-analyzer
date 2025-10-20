@@ -92,7 +92,7 @@ export default function JobDetails() {
                 }}>
                   Test your CV
                 </button>
-                <button  className={`${styles.button} ${styles.buttonPrimary}`} onClick={() => navigate(`/apply/${id}`)}>
+                <button  className={`${styles.button} ${styles.buttonPrimary}`} onClick={() => navigate(`/jobs`)}>
                   Back to jobs
                 </button>
               </div>

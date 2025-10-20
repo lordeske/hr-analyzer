@@ -16,6 +16,7 @@ import com.hr_analyzer.cv.mapper.CvMapper;
 import com.hr_analyzer.cv.model.Cv;
 import com.hr_analyzer.cv.model.CvMyResponse;
 import com.hr_analyzer.cv.model.CvSuggestion;
+import com.hr_analyzer.cv.model.Status;
 import com.hr_analyzer.cv.repository.CvRepository;
 
 import com.hr_analyzer.cv.repository.CvSuggestionRepository;
@@ -98,14 +99,30 @@ public class CvService {
     }
 
 
+    public Long createCv(Long jobId)
+    {
+
+        User user = SecurityUtils.getCurrentUser()
+                .orElseThrow(() -> new IllegalStateException("Nisi ologovan, token ne valja"));
+
+
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ne postoji posao sa ID: " + jobId));
+
+        Cv cv = new Cv();
+        cv.setCandidate(user);
+        cv.setJob(job);
+        cv.setUploadTime(LocalDateTime.now());
+        cv.setStatus(Status.PENDING);
+        return cvRepository.save(cv).getId();
+
+    }
+
+
 
 
     @KafkaListener(topics = "cv-upload-topic" , groupId = "cv-group")
     @Transactional
-//    @Retryable(
-//           maxAttempts = 3,
-//            backoff = @Backoff(delay = 5000)
-//    )
     public void consumeCvUploadMessage(CvUploadMessage message) {
 
             log.info("Primio sam poruku iz Kafka: RADIM");
@@ -149,8 +166,14 @@ public class CvService {
             }
 
 
-            Cv cv = CvMapper.mapToCv(candidate, cvContent, job, aiData.getMatchPercentage());
-            cvRepository.save(cv);
+
+
+            Cv cv = cvRepository.findById(message.getCvId()).orElseThrow(()->
+            new CvNotFoundException("Ne postoji CV sa ID: "+message.getCvId()));
+            cv.setCvContent(cvContent);
+            cv.setMatchScore(aiData.getMatchPercentage());
+
+
 
 
             List<CvSuggestion> suggestionEntities = aiData.getSuggestions().stream()
@@ -164,6 +187,10 @@ public class CvService {
 
 
             cvSuggestionRepository.saveAll(suggestionEntities);
+
+            cv.setStatus(Status.COMPLETED);
+            cvRepository.save(cv);
+
 
 
 

@@ -51,7 +51,9 @@ public class CohereScoringService {
               "matchPercentage": <number from 0 to 100>,
               "suggestions": [
                 "<short suggestion 1>",
-                "<short suggestion 2>"
+                "<short suggestion 2>",
+                "<short suggestion 3>"
+                
               ]
             }
 

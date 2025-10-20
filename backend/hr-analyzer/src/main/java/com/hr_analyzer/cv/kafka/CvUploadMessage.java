@@ -16,6 +16,7 @@ public class CvUploadMessage {
     private Long jobId;
     private String mimeType;
     private String  email;
+    private Long cvId;
 
 
 

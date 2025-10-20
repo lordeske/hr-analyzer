@@ -70,8 +70,9 @@ export default function ApplyCvPage() {
 
     try {
       setLoading(true);
-      const { testId } = await uploadCvFile({ jobId: Number(jobId), file });
-      navigate(`/cv-test-status/${testId}`);
+      const { data } = await uploadCvFile({ jobId: Number(jobId), file });
+      navigate(`/cv/${data}`)
+
     } catch (e2) {
       console.error("Error uploading CV:", e2);
       setError(

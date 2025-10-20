@@ -156,7 +156,7 @@ export default function JobsList() {
             </select>
           </label>
 
-          <button className={`${styles.button} ${styles.buttonSecondary}`} type="submit">Apply</button>
+          <button className={`${styles.button} ${styles.buttonPrimary}`} type="submit">Apply</button>
         </form>
       </div>
 

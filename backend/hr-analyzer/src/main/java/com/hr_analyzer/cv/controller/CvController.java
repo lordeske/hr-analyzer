@@ -5,7 +5,6 @@ package com.hr_analyzer.cv.controller;
 import com.hr_analyzer.auth.config.SecurityUtils;
 import com.hr_analyzer.auth.dto.CandidateResponse;
 import com.hr_analyzer.cv.dto.CvResponse;
-import com.hr_analyzer.cv.dto.CvSearchRequest;
 import com.hr_analyzer.cv.kafka.CvKafkaProducer;
 import com.hr_analyzer.cv.kafka.CvUploadMessage;
 import com.hr_analyzer.cv.model.CvMyResponse;
@@ -16,7 +15,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -69,7 +66,7 @@ public class CvController {
 
 
     @PostMapping(value = "/uploadCvFile" , consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> uploadCvFile(
+    public ResponseEntity<Long> uploadCvFile(
             @RequestParam("file") MultipartFile file,
             @RequestParam("jobId") @NotNull @Positive(message = "jobID mora da bude pozitivan") Long jobId
 
@@ -80,13 +77,16 @@ public class CvController {
         String userEmail = SecurityUtils.getCurrentUser()
                 .orElseThrow(()-> new IllegalStateException("Nema ulogovanog korisnika")).getEmail();
 
-
         byte [] fileByte = file.getBytes();
 
-        CvUploadMessage message = new CvUploadMessage(fileByte, jobId, file.getContentType() ,userEmail );
+        Long cvId = cvService.createCv(jobId);
+
+
+        CvUploadMessage message = new CvUploadMessage(fileByte, jobId, file.getContentType() ,userEmail,cvId );
 
         kafkaProducer.sendCvUploadMessage(message);
-        return ResponseEntity.ok("CV uspesno uploadovan");
+
+        return ResponseEntity.ok(cvId);
 
 
 

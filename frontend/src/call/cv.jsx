@@ -48,3 +48,33 @@ export async function uploadCvFile({ jobId, file }) {
     }
 }
 
+export async function getCvById(id) {
+    try {
+        const token = getToken();
+        if (!token) {
+
+            throw new Error("There is no token in Local Storage");
+        }
+
+        const response = await api.get(`/${id}`,
+            {
+                headers:
+                {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        )
+
+        return response.data;
+
+    }
+
+    catch (error) {
+        console.error("Error fetching CV:", error);
+        throw error;
+    }
+
+
+
+
+}

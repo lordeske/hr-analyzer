@@ -19,6 +19,8 @@ public class CvResponse {
     private String email;
     private String phoneNumber;
     private String jobTitle;
+    private Long jobId;
+    private String status;
     private Double matchScore;
     private LocalDateTime uploadTime;
     private List<String> suggestion;

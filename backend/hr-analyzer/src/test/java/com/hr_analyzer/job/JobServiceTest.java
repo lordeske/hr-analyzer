@@ -4,17 +4,17 @@ import com.hr_analyzer.auth.config.SecurityUtils;
 import com.hr_analyzer.auth.model.User;
 import com.hr_analyzer.job.model.Job;
 import com.hr_analyzer.job.model.JobRequest;
+import com.hr_analyzer.job.model.JobResponse;
 import com.hr_analyzer.job.repository.JobRepository;
 import com.hr_analyzer.job.service.JobService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
+import org.springframework.data.domain.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -82,7 +82,7 @@ public class JobServiceTest {
 
             System.out.println("Mokovani korisnik je: " + SecurityUtils.getCurrentUser().orElse(null));
 
-        }
+
 
 
 
@@ -95,9 +95,50 @@ public class JobServiceTest {
 
         var response = jobService.createJob(jobRequest);
 
+
+
         assertNotNull(response);
         assertEquals("Backend Developer", response.getTitle());
         verify(jobRepository, times(1)).save(any(Job.class));
+
+        }
+    }
+
+
+    @Test
+    void  getAllJobs_capsPageSizeAt100_andKeepsSort()
+    {
+
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+
+        Pageable input = PageRequest.of(2, 200, sort);
+
+
+        List<Job> jobList = List.of(
+                TestData.job("Java Dev"),
+                TestData.job("C Dev"));
+
+        Page<Job> repoPage = new PageImpl<>(jobList,PageRequest.of(2,100, sort),250);
+
+
+
+        when(jobRepository.findAll(any(Pageable.class))).thenReturn(repoPage);
+
+        Page<JobResponse> result = jobService.getAllJobs(input);
+
+
+        ArgumentCaptor<Pageable> pageableArgumentCaptor  = ArgumentCaptor.forClass(Pageable.class);
+        verify(jobRepository).findAll(pageableArgumentCaptor.capture());
+
+        Pageable used = pageableArgumentCaptor.getValue();
+
+        assertEquals(100, used.getPageSize(), "page size mora biti cap-ovan na 100");
+        assertEquals(2, used.getPageNumber(), "page number treba da ostane isti");
+        assertEquals(sort, used.getSort(), "sort treba da ostane isti");
+
+        assertEquals(2, result.getContent().size());
+        assertEquals(250, result.getTotalElements());
+        assertEquals("Java Dev", result.getContent().get(0).getTitle());
 
     }
 

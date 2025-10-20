@@ -42,5 +42,8 @@ public class Cv {
     @OneToMany(mappedBy = "cv", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CvSuggestion> suggestions;
 
+    @Enumerated(EnumType.STRING)
+    private Status status;
+
 
 }
