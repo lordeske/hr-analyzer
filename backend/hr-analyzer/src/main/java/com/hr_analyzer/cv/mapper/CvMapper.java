@@ -82,6 +82,7 @@ public class CvMapper {
                 .jobId(cv.getJob().getId())
                 .companyName(cv.getJob().getCompany())
                 .jobTitle(cv.getJob().getTitle())
+                .matchScore(cv.getMatchScore())
                 .build();
 
 

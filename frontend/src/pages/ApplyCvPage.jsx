@@ -70,7 +70,8 @@ export default function ApplyCvPage() {
 
     try {
       setLoading(true);
-      const { data } = await uploadCvFile({ jobId: Number(jobId), file });
+      const  data  = await uploadCvFile({ jobId: Number(jobId), file });
+      console.log(data);
       navigate(`/cv/${data}`)
 
     } catch (e2) {

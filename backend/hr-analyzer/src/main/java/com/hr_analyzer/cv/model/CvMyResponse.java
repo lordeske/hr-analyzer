@@ -12,5 +12,6 @@ public class CvMyResponse {
     private String jobTitle;
     private String companyName;
     private Long cvId;
+    private Double matchScore;
 
 }

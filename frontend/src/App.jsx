@@ -6,6 +6,7 @@ import JobDetails from "./pages/JobDetails.jsx";
 import JobsList from "./pages/JobsList.jsx";
 import ApplyCvPage from "./pages/ApplyCvPage.jsx";
 import CvResultPage from "./pages/CvResultPage.jsx";
+import MyCvs from "./pages/MyCvs.jsx";
 
 export default function App() {
   return (
@@ -19,6 +20,8 @@ export default function App() {
         <Route path="/jobs" element={<JobsList />} />
         <Route path="/apply/:jobId" element={<ApplyCvPage />} />
         <Route path="/cv/:id" element={<CvResultPage />} />
+        <Route path="/my-cvs" element={<MyCvs />} />
+
       </Routes>
     </>
   );
