@@ -35,7 +35,7 @@ export default function LoginPage() {
 
       
 
-      //setTimeout(() => navigate("/dashboard"), 700);
+      setTimeout(() => navigate("/jobs"), 700);
     } catch (err) {
       const msg =
         err?.response?.data?.message ||

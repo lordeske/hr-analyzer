@@ -21,7 +21,7 @@ export default function JobsList() {
   const [params, setParams] = useSearchParams();
 
   const page = Number(params.get("page") ?? 0);
-  const size = Number(params.get("size") ?? 12);
+  const size = Number(params.get("size") ?? 15);
   const sort = params.get("sort") ?? "createdAt,desc";
   const q    = params.get("q") ?? ""; 
 
@@ -137,10 +137,10 @@ export default function JobsList() {
           <label className={styles.controlItem}>
             <span>Page size</span>
             <select value={pendingSize} onChange={(e) => setPendingSize(e.target.value)}>
-              <option value={6}>6</option>
-              <option value={9}>9</option>
-              <option value={12}>12</option>
+              <option value={5}>5</option>
+              <option value={10}>10</option>
               <option value={15}>15</option>
+              <option value={15}>20</option>
             </select>
           </label>
 
@@ -158,6 +158,13 @@ export default function JobsList() {
 
           <button className={`${styles.button} ${styles.buttonPrimary}`} type="submit">Apply</button>
         </form>
+        <button
+            type="button"
+            className={`${styles.button} ${styles.buttonPrimary}`}
+            onClick={() => navigate("/my-cvs")}
+          >
+            My CVs
+          </button>
       </div>
 
       {error && <div className={`${styles.alert} ${styles.alertError}`}>{error}</div>}

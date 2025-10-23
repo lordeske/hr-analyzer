@@ -66,7 +66,7 @@ export default function RegisterCandidate() {
   };
 
   return (
-    <div className={styles.loginRoot}>
+    <div className={styles.registerRoot}>
       <div className={styles.background} />
 
       

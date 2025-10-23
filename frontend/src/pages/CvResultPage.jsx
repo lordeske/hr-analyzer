@@ -86,7 +86,7 @@ export default function CvResultPage() {
             <section className={styles.section}>
               <h2 className={styles.sectionTitle}>Processing…</h2>
               <p className={styles.par}>
-                Vaš CV je u obradi. Ova stranica će se automatski osvežavati dok status ne bude <strong>Completed</strong>.
+                Your CV is being processed. This page will automatically refresh until the status becomes <strong>Completed</strong>.
               </p>
             </section>
 
