@@ -1,9 +1,10 @@
 import React from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { getToken } from "../call/tokenJson";
+import { getRole, getToken } from "../call/tokenJson";
 
 export default function ProtectedRoute() {
   const token = getToken();
+  
   const location = useLocation();
 
   if (!token) {

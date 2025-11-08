@@ -5,12 +5,12 @@ import styles from "../styles/register.module.css";
 
 export default function RegisterCandidate() {
   const [firstName, setFirstName] = useState("");
-  const [lastName,  setLastName]  = useState("");
-  const [phone,     setPhone]     = useState("");
-  const [email,     setEmail]     = useState("");
-  const [password,  setPassword]  = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const [error,   setError]   = useState("");
+  const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -23,7 +23,7 @@ export default function RegisterCandidate() {
   };
 
   const getAxiosErrorMessage = (err) => {
-   
+
     return (
       err?.response?.data?.message ||
       err?.response?.data?.error ||
@@ -37,7 +37,7 @@ export default function RegisterCandidate() {
     setError("");
     setMessage("");
 
-    
+
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setError("Please enter a valid email.");
       return;
@@ -55,11 +55,10 @@ export default function RegisterCandidate() {
       const res = await RegisterHrApi(registerRequest);
       setMessage("Account created successfully. Redirecting to login…");
 
-      
+
       setTimeout(() => navigate("/login"), 900);
     } catch (err) {
-      const msg = getAxiosErrorMessage(err);
-      setError(msg);
+      setError(err?.message || "Login failed.");
     } finally {
       setLoading(false);
     }
@@ -69,7 +68,7 @@ export default function RegisterCandidate() {
     <div className={styles.registerRoot}>
       <div className={styles.background} />
 
-      
+
       {loading && (
         <div className={styles.overlay} aria-live="polite" aria-busy="true">
           <div className={styles.spinner} />
@@ -84,7 +83,7 @@ export default function RegisterCandidate() {
       >
         <h3>Register as Hr</h3>
 
-       
+
         {error && (
           <div id="form-error" className={`${styles.alert} ${styles.alertError}`} role="alert">
             {error}

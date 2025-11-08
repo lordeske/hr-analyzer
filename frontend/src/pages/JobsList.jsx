@@ -163,7 +163,7 @@ export default function JobsList() {
             className={`${styles.button} ${styles.buttonPrimary}`}
             onClick={() => navigate("/my-cvs")}
           >
-            My CVs
+            Click Here to See your CVs
           </button>
       </div>
 

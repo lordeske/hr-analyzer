@@ -10,6 +10,7 @@ import JobsList from "./pages/JobsList.jsx";
 import ApplyCvPage from "./pages/ApplyCvPage.jsx";
 import CvResultPage from "./pages/CvResultPage.jsx";
 import MyCvs from "./pages/MyCvs.jsx";
+import HrDashboard from "./pages/HrDashboard.jsx";
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="/apply/:jobId" element={<ApplyCvPage />} />
         <Route path="/cv/:id" element={<CvResultPage />} />
         <Route path="/my-cvs" element={<MyCvs />} />
+        <Route path="/hr-dashboard" element= {<HrDashboard/>} ></Route>
       </Route>
 
      

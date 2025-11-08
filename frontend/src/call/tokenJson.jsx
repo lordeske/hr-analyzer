@@ -1,21 +1,43 @@
-// tu 
+
 
 export function saveToken(data) {
-    const toStore = typeof data === "string" ? { token: data } : data;
-    localStorage.setItem("token", JSON.stringify(toStore));
+  
+  const toStore = {
+
+    token : data.token ?? data,
+    role : data.role ?? null
+  
+
+    };
+
+    localStorage.setItem("auth", JSON.stringify(toStore))
+
+
+
 }
 
 export function getToken() {
-  const raw = localStorage.getItem("token");
+  const raw = localStorage.getItem("auth");
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw);
     return parsed?.token ?? null;
   } catch {
-    return raw;
+    return null;
+  }
+}
+
+export function getRole() {
+  const raw = localStorage.getItem("auth");
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed?.role ?? null;
+  } catch {
+    return null;
   }
 }
 
 export function clearToken() {
-  localStorage.removeItem("token");
+  localStorage.removeItem("auth");
 }

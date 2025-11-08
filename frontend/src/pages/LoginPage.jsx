@@ -1,14 +1,15 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from "../call/auth.jsx";  
+import { login } from "../call/auth.jsx";
+import { getRole } from "../call/tokenJson.jsx"; 
 import styles from "../styles/login.module.css";
 
 export default function LoginPage() {
-  const [email, setEmail]       = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError]       = useState("");
-  const [message, setMessage]   = useState("");
-  const [loading, setLoading]   = useState(false);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -17,7 +18,6 @@ export default function LoginPage() {
     setError("");
     setMessage("");
 
-    
     if (!email || !password) {
       setError("Please enter both email and password.");
       return;
@@ -28,20 +28,22 @@ export default function LoginPage() {
     try {
       const res = await login({ email, password });
 
-      
       console.log("Login success:", res);
-
       setMessage("Login successful! Redirecting…");
 
-      
+     
+      const role = res?.role || getRole();
 
-      setTimeout(() => navigate("/jobs"), 700);
+      
+      setTimeout(() => {
+        if (role === "HR") {
+          navigate("/hr-dashboard");
+        } else if (role === "CANDIDATE") {
+          navigate("/jobs");
+        }
+      }, 700);
     } catch (err) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Invalid email or password.";
-      setError(msg);
+      setError(err?.message || "Login failed.");
     } finally {
       setLoading(false);
     }
@@ -49,11 +51,8 @@ export default function LoginPage() {
 
   return (
     <div className={styles.loginRoot}>
-      <div className={styles.background}>
-       
-      </div>
+      <div className={styles.background}></div>
 
-      
       {loading && (
         <div className={styles.overlay}>
           <div className={styles.spinner}></div>
@@ -64,7 +63,6 @@ export default function LoginPage() {
       <form className={styles.loginForm} onSubmit={handleSubmit}>
         <h3>Login Here</h3>
 
-       
         {error && (
           <div className={`${styles.alert} ${styles.alertError}`}>{error}</div>
         )}
