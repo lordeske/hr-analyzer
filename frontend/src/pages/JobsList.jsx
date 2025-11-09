@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import styles from "../styles/jobs-list.module.css";
 import { getJobs, advancedSearchJobs } from "../call/job.jsx";
+import { getRole } from "../call/tokenJson.jsx";
 
 function formatSalary(sal) {
   if (sal == null) return "—";
@@ -19,29 +20,28 @@ function formatDate(iso) {
 export default function JobsList() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
+  const role = getRole();
 
   const page = Number(params.get("page") ?? 0);
   const size = Number(params.get("size") ?? 15);
   const sort = params.get("sort") ?? "createdAt,desc";
-  const q    = params.get("q") ?? ""; 
+  const q = params.get("q") ?? "";
 
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState("");
-  const [data, setData]       = useState({ content: [], totalPages: 0, totalElements: 0, number: 0, size });
+  const [error, setError] = useState("");
+  const [data, setData] = useState({ content: [], totalPages: 0, totalElements: 0, number: 0, size });
 
-  const [pendingSize, setPendingSize]       = useState(size);
-  const [pendingSort, setPendingSort]       = useState(sort);
+  const [pendingSize, setPendingSize] = useState(size);
+  const [pendingSort, setPendingSort] = useState(sort);
   const [pendingKeyword, setPendingKeyword] = useState(q);
 
   useEffect(() => {
     let mounted = true;
     setLoading(true);
     setError("");
-
     const run = q.trim()
       ? advancedSearchJobs({ keyword: q, page, size, sort })
       : getJobs({ page, size, sort });
-
     run
       .then((resp) => {
         if (!mounted) return;
@@ -55,7 +55,6 @@ export default function JobsList() {
       })
       .catch((err) => setError(err?.message || "Failed to load jobs"))
       .finally(() => setLoading(false));
-
     return () => { mounted = false; };
   }, [page, size, sort, q]);
 
@@ -79,16 +78,15 @@ export default function JobsList() {
     sp.set("page", "0");
     sp.set("size", String(pendingSize));
     sp.set("sort", pendingSort);
-   
     setParams(sp, { replace: false });
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     const sp = new URLSearchParams(params);
-    sp.set("page", "0"); 
+    sp.set("page", "0");
     if (pendingKeyword.trim()) sp.set("q", pendingKeyword.trim());
-    else sp.delete("q"); 
+    else sp.delete("q");
     setParams(sp, { replace: false });
   };
 
@@ -104,7 +102,6 @@ export default function JobsList() {
       <div className={styles.headerRow}>
         <h1 className={styles.title}>Open Positions</h1>
 
-       
         <form className={styles.searchBar} onSubmit={handleSearchSubmit}>
           <input
             type="text"
@@ -132,7 +129,6 @@ export default function JobsList() {
           )}
         </form>
 
-       
         <form className={styles.controls} onSubmit={handleApplyFilters}>
           <label className={styles.controlItem}>
             <span>Page size</span>
@@ -140,7 +136,7 @@ export default function JobsList() {
               <option value={5}>5</option>
               <option value={10}>10</option>
               <option value={15}>15</option>
-              <option value={15}>20</option>
+              <option value={20}>20</option>
             </select>
           </label>
 
@@ -158,20 +154,37 @@ export default function JobsList() {
 
           <button className={`${styles.button} ${styles.buttonPrimary}`} type="submit">Apply</button>
         </form>
-        <button
+
+        {role !== "HR" && (
+          <button
             type="button"
             className={`${styles.button} ${styles.buttonPrimary}`}
             onClick={() => navigate("/my-cvs")}
           >
             Click Here to See your CVs
           </button>
+        )}
+        {role == "HR" && (
+          <button
+            type="button"
+            className={`${styles.button} ${styles.buttonPrimary}`}
+            onClick={() => navigate("/hr-dashboard")}
+          >
+            Click Here to See HR Dashboard
+          </button>
+        )}
       </div>
 
       {error && <div className={`${styles.alert} ${styles.alertError}`}>{error}</div>}
 
       <div className={styles.grid}>
         {data.content.map((job) => (
-          <article key={job.id} className={styles.card} onClick={() => navigate(`/job/${job.id}`)} role="button">
+          <article
+            key={job.id}
+            className={styles.card}
+            onClick={() => navigate(`/job/${job.id}`)}
+            role="button"
+          >
             <header className={styles.cardHeader}>
               <h2 className={styles.cardTitle}>{job.title}</h2>
               <div className={styles.cardMeta}>
@@ -187,40 +200,62 @@ export default function JobsList() {
             </div>
 
             <p className={styles.cardExcerpt}>
-              {job.description ? String(job.description).slice(0, 160) + (String(job.description).length > 160 ? "…" : "") : "No description."}
+              {job.description
+                ? String(job.description).slice(0, 160) + (String(job.description).length > 160 ? "…" : "")
+                : "No description."}
             </p>
 
             <div className={styles.cardActions}>
-              <button className={`${styles.button} ${styles.buttonPrimary}`} onClick={(e) => { e.stopPropagation(); navigate(`/job/${job.id}`); }}>
+              <button
+                className={`${styles.button} ${styles.buttonPrimary}`}
+                onClick={(e) => { e.stopPropagation(); navigate(`/job/${job.id}`); }}
+              >
                 View details
               </button>
-              <button className={`${styles.button} ${styles.buttonPrimary}`} onClick={(e) => { e.stopPropagation(); navigate(`/apply/${job.id}`); }}>
-                Test your CV
-              </button>
+
+              {role !== "HR" && (
+                <button
+                  className={`${styles.button} ${styles.buttonPrimary}`}
+                  onClick={(e) => { e.stopPropagation(); navigate(`/apply/${job.id}`); }}
+                >
+                  Test your CV
+                </button>
+              )}
             </div>
           </article>
         ))}
       </div>
 
-      <div className={styles.pagination}>
-        <button className={styles.button} disabled={!canPrev} onClick={() => {
-          const sp = new URLSearchParams(params);
-          sp.set("page", String(page - 1));
-          setParams(sp, { replace: false });
-        }}>
-          Prev
-        </button>
-        <span className={styles.pageInfo}>
-          Page <strong>{(data.number ?? page) + 1}</strong>
-          {data.totalPages ? <> / <strong>{data.totalPages}</strong></> : null}
-        </span>
-        <button className={styles.button} disabled={!canNext} onClick={() => {
-          const sp = new URLSearchParams(params);
-          sp.set("page", String(page + 1));
-          setParams(sp, { replace: false });
-        }}>
-          Next
-        </button>
+      <div className={styles.paginationBar}>
+        <div className={styles.pagination}>
+          <button
+            className={styles.button}
+            disabled={!canPrev}
+            onClick={() => {
+              const sp = new URLSearchParams(params);
+              sp.set("page", String(page - 1));
+              setParams(sp, { replace: false });
+            }}
+          >
+            Prev
+          </button>
+          <span className={styles.pageInfo}>
+            Page <strong>{(data.number ?? page) + 1}</strong>
+            {data.totalPages ? <> / <strong>{data.totalPages}</strong></> : null}
+            {typeof data.totalElements === "number" ? <> • {data.totalElements} jobs</> : null}
+          </span>
+          <button
+            className={styles.button}
+            disabled={!canNext}
+            onClick={() => {
+              const sp = new URLSearchParams(params);
+              sp.set("page", String(page + 1));
+              setParams(sp, { replace: false });
+            }}
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );

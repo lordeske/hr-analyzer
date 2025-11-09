@@ -6,7 +6,11 @@ import styles from "../styles/hr-dashboard.module.css";
 function formatSalary(sal) {
   if (sal == null) return "—";
   try {
-    return new Intl.NumberFormat(undefined, { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(sal);
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: "EUR",
+      maximumFractionDigits: 0,
+    }).format(sal);
   } catch {
     return `${sal}`;
   }
@@ -65,14 +69,23 @@ export default function HrDashboard() {
   }, [items, pendingKeyword]);
 
   const onOpenCreate = () => {
-    setForm({ title: "", company: "", location: "", description: "", salary: "" });
+    setForm({
+      title: "",
+      company: "",
+      location: "",
+      description: "",
+      salary: "",
+    });
     setShowCreate(true);
   };
   const onCloseCreate = () => setShowCreate(false);
 
   const onChangeForm = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: name === "salary" ? value.replace(/[^0-9]/g, "") : value }));
+    setForm((prev) => ({
+      ...prev,
+      [name]: name === "salary" ? value.replace(/[^0-9]/g, "") : value,
+    }));
   };
 
   const onSubmitCreate = async (e) => {
@@ -108,6 +121,42 @@ export default function HrDashboard() {
   const canPrev = page > 0;
   const canNext = page + 1 < totalPages;
 
+
+  const buildPageList = (tp, current, windowSize = 1) => {
+    if (!tp || tp <= 1) return [0];
+    const first = 0;
+    const last = tp - 1;
+
+    const start = Math.max(first, current - windowSize);
+    const end = Math.min(last, current + windowSize);
+
+    const pages = [];
+
+    pages.push(first);
+
+
+    if (start > first + 1) pages.push("…");
+
+
+    for (let p = start; p <= end; p++) {
+      if (p !== first && p !== last) pages.push(p);
+    }
+
+
+    if (end < last - 1) pages.push("…");
+
+
+    if (last !== first) pages.push(last);
+
+
+    const compact = [];
+    for (let i = 0; i < pages.length; i++) {
+      if (i > 0 && pages[i] === "…" && pages[i - 1] === "…") continue;
+      compact.push(pages[i]);
+    }
+    return compact;
+  };
+
   return (
     <div className={styles.page}>
       {loading && (
@@ -128,7 +177,9 @@ export default function HrDashboard() {
             value={pendingKeyword}
             onChange={(e) => setPendingKeyword(e.target.value)}
           />
-          <button className={`${styles.button} ${styles.buttonPrimary}`} type="submit">Search</button>
+          <button className={`${styles.button} ${styles.buttonPrimary}`} type="submit">
+            Search
+          </button>
           <button
             type="button"
             className={`${styles.button} ${!pendingKeyword ? styles.ghost : ""}`}
@@ -168,20 +219,32 @@ export default function HrDashboard() {
               </header>
 
               <div className={styles.badges}>
-                <span className={styles.badge}>Salary: <strong>{formatSalary(job.salary)}</strong></span>
+                <span className={styles.badge}>
+                  Salary: <strong>{formatSalary(job.salary)}</strong>
+                </span>
                 <span className={styles.badgeMuted}>Posted: {formatDate(job.createdAt)}</span>
                 <span className={styles.badgeMuted}>ID: {job.id || job._id || "—"}</span>
               </div>
 
               <p className={styles.cardExcerpt}>
                 {job.description
-                  ? String(job.description).slice(0, 160) + (String(job.description).length > 160 ? "…" : "")
+                  ? String(job.description).slice(0, 160) +
+                  (String(job.description).length > 160 ? "…" : "")
                   : "No description."}
               </p>
 
               <div className={styles.cardActions}>
-                <Link to={`/job/${job.id || job._id || "new"}`} className={`${styles.button} ${styles.buttonPrimary}`}>
-                  View
+                <Link
+                  to={`/job/${job.id || job._id || "new"}`}
+                  className={`${styles.button} ${styles.buttonPrimary}`}
+                >
+                  View Job
+                </Link>
+                <Link
+                  to={`/job/${job.id || job._id || "new"}/cvs`}
+                  className={`${styles.button} ${styles.buttonPrimary}`}
+                >
+                  View CVs
                 </Link>
               </div>
             </article>
@@ -189,26 +252,52 @@ export default function HrDashboard() {
         </div>
       </div>
 
+
       <div className={styles.paginationBar}>
         <div className={styles.pagination}>
           <button
             className={styles.button}
             disabled={!canPrev || loading}
             onClick={() => setPage((p) => Math.max(0, p - 1))}
+            aria-label="Previous page"
           >
             Prev
           </button>
-          <span className={styles.pageInfo}>
-            Page <strong>{page + 1}</strong>
-            {totalPages ? <> / <strong>{totalPages}</strong></> : null} • {totalElements} jobs
-          </span>
+
+          <div className={styles.pageNumbers}>
+            {buildPageList(totalPages, page).map((it, idx) =>
+              typeof it === "number" ? (
+                <button
+                  key={`p-${it}-${idx}`}
+                  className={`${styles.pageBtn} ${it === page ? styles.pageBtnActive : ""}`}
+                  onClick={() => setPage(it)}
+                  disabled={loading || it === page}
+                  aria-current={it === page ? "page" : undefined}
+                >
+                  {it + 1}
+                </button>
+              ) : (
+                <span key={`e-${idx}`} className={styles.ellipsis}>
+                  …
+                </span>
+              )
+            )}
+          </div>
+
           <button
             className={styles.button}
             disabled={!canNext || loading}
             onClick={() => setPage((p) => p + 1)}
+            aria-label="Next page"
           >
             Next
           </button>
+        </div>
+
+        <div className={styles.pageInfoBar}>
+          Page <strong>{page + 1}</strong>
+          {totalPages ? <> / <strong>{totalPages}</strong></> : null}
+          {typeof totalElements === "number" && <> • {totalElements} jobs</>}
         </div>
       </div>
 
@@ -275,12 +364,24 @@ export default function HrDashboard() {
                 onChange={onChangeForm}
                 className={styles.modalInput}
                 placeholder="e.g. 2500"
+                maxLength={6} 
               />
             </div>
 
             <div className={styles.modalActions}>
-              <button type="button" className={styles.button} onClick={onCloseCreate} disabled={creating}>Cancel</button>
-              <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`} disabled={creating}>
+              <button
+                type="button"
+                className={styles.button}
+                onClick={onCloseCreate}
+                disabled={creating}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className={`${styles.button} ${styles.buttonPrimary}`}
+                disabled={creating}
+              >
                 {creating ? "Creating…" : "Create Job"}
               </button>
             </div>

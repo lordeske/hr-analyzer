@@ -1,7 +1,8 @@
+// src/pages/CvList.jsx
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import styles from "../styles/my-cvs.module.css";
-import { getLoggedUsersCvsSim } from "../call/cv.jsx";
+import { useNavigate, useParams, useSearchParams, Link } from "react-router-dom";
+import styles from "../styles/cv-list.module.css";
+import { getCvsByJob } from "../call/job.jsx";
 
 function formatScore(score) {
   if (score == null) return "—";
@@ -22,13 +23,14 @@ function formatSortLabel(s) {
   }
 }
 
-export default function MyCvs() {
+export default function CvList() {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [params, setParams] = useSearchParams();
 
   const page = Number(params.get("page") ?? 0);
   const size = Number(params.get("size") ?? 12);
-  const sort = params.get("sort") ?? "uploadTime,desc";
+  const sort = params.get("sort") ?? "matchScore,desc";
 
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState("");
@@ -48,7 +50,7 @@ export default function MyCvs() {
     setLoading(true);
     setError("");
 
-    getLoggedUsersCvsSim({ page, size, sort })
+    getCvsByJob(id, { page, size, sort })
       .then((res) => {
         if (!alive) return;
         setData({
@@ -61,12 +63,12 @@ export default function MyCvs() {
       })
       .catch((err) => {
         if (!alive) return;
-        setError(err.message || "Failed to load your CVs.");
+        setError(err.message || "Failed to load CVs for this job.");
       })
       .finally(() => alive && setLoading(false));
 
     return () => { alive = false; };
-  }, [page, size, sort]);
+  }, [id, page, size, sort]);
 
   const canPrev = useMemo(() => page > 0, [page]);
   const canNext = useMemo(
@@ -92,12 +94,13 @@ export default function MyCvs() {
       {loading && (
         <div className={styles.overlay}>
           <div className={styles.spinner} />
-          <p>Loading your CVs…</p>
+          <p>Loading CVs…</p>
         </div>
       )}
 
+      {/* Header */}
       <div className={styles.headerRow}>
-        <h1 className={styles.title}>My CVs</h1>
+        <h1 className={styles.title}>CVs for Job #{id}</h1>
 
         <form className={styles.controls} onSubmit={handleApply}>
           <label className={styles.controlItem}>
@@ -120,10 +123,10 @@ export default function MyCvs() {
               onChange={(e) => setPendingSort(e.target.value)}
               title={formatSortLabel(pendingSort)}
             >
-              <option value="uploadTime,desc">Newest first</option>
-              <option value="uploadTime,asc">Oldest first</option>
               <option value="matchScore,desc">Match score (high → low)</option>
               <option value="matchScore,asc">Match score (low → high)</option>
+              <option value="uploadTime,desc">Newest first</option>
+              <option value="uploadTime,asc">Oldest first</option>
             </select>
           </label>
 
@@ -131,13 +134,9 @@ export default function MyCvs() {
             Apply
           </button>
 
-          <button
-            type="button"
-            className={`${styles.button} ${styles.buttonPrimary}`}
-            onClick={() => navigate("/jobs")}
-          >
-            View all jobs
-          </button>
+          <Link to={`/job/${id}`} className={`${styles.button} ${styles.buttonPrimary}`}>
+            Back to job
+          </Link>
         </form>
       </div>
 
@@ -145,75 +144,83 @@ export default function MyCvs() {
 
       {!loading && !error && data.content.length === 0 && (
         <div className={styles.empty}>
-          <p>No CVs found yet.</p>
+          <p>No CVs submitted for this job yet.</p>
         </div>
       )}
 
+      {/* Grid of cards */}
       <div className={styles.grid}>
-        {data.content.map((item) => (
-          <article key={item.cvId} className={styles.card}>
-            <header className={styles.cardHeader}>
-              <h2 className={styles.cardTitle}>{item.jobTitle}</h2>
-              <div className={styles.cardMeta}>
-                <span className={styles.company}>{item.companyName}</span>
+        {data.content.map((item) => {
+          const cvId = item.cvId ?? item.id;
+          const fullName =
+            [item.candidateFirstName, item.candidateLastName].filter(Boolean).join(" ").trim() ||
+            "Candidate";
+          return (
+            <article key={cvId} className={styles.card}>
+              <header className={styles.cardHeader}>
+                <h2 className={styles.cardTitle}>{fullName}</h2>
+                <div className={styles.cardMeta}>
+                  {item.email && <span>{item.email}</span>}
+                  {item.phoneNumber && (
+                    <>
+                      <span> · </span>
+                      <span>{item.phoneNumber}</span>
+                    </>
+                  )}
+                </div>
+              </header>
+
+              <div className={styles.scoreRow}>
+                <div className={styles.scoreLabel}>Match</div>
+                <div className={styles.scoreValue}>
+                  {formatScore(item.matchScore)}<span className={styles.of}>/100</span>
+                </div>
               </div>
-            </header>
 
-            <div className={styles.scoreRow}>
-              <div className={styles.scoreLabel}>Match</div>
-              <div className={styles.scoreValue}>
-                {formatScore(item.matchScore)}<span className={styles.of}>/100</span>
+              <div className={styles.scoreBar}>
+                <div
+                  className={styles.scoreFill}
+                  style={{
+                    width: `${Math.max(0, Math.min(100, Number(item.matchScore) || 0))}%`,
+                  }}
+                />
               </div>
-            </div>
 
-            <div className={styles.scoreBar}>
-              <div
-                className={styles.scoreFill}
-                style={{
-                  width: `${Math.max(0, Math.min(100, Number(item.matchScore) || 0))}%`,
-                }}
-              />
-            </div>
-
-            <div className={styles.cardActions}>
-              <button
-                className={`${styles.button} ${styles.buttonPrimary}`}
-                onClick={() => navigate(`/cv/${item.cvId}`)}
-              >
-                View result
-              </button>
-              <button
-                className={`${styles.button} ${styles.buttonPrimary}`}
-                onClick={() => navigate(`/job/${item.jobId}`)}
-              >
-                View job
-              </button>
-            </div>
-          </article>
-        ))}
+              <div className={styles.cardActions}>
+                {cvId && (
+                  <button
+                    className={`${styles.button} ${styles.buttonPrimary}`}
+                    onClick={() => navigate(`/cv/${cvId}`)}
+                  >
+                    View CV
+                  </button>
+                )}
+              </div>
+            </article>
+          );
+        })}
       </div>
 
-      <div className={styles.paginationBar}>
-        <div className={styles.pagination}>
-          <button
-            className={`${styles.button} ${styles.buttonPrimary}`}
-            disabled={!canPrev}
-            onClick={() => goTo(page - 1)}
-          >
-            Prev
-          </button>
-          <span className={styles.pageInfo}>
-            Page <strong>{(data.number ?? page) + 1}</strong>
-            {data.totalPages ? <> / <strong>{data.totalPages}</strong></> : null}
-          </span>
-          <button
-            className={`${styles.button} ${styles.buttonPrimary}`}
-            disabled={!canNext}
-            onClick={() => goTo(page + 1)}
-          >
-            Next
-          </button>
-        </div>
+      {/* Pagination */}
+      <div className={styles.pagination}>
+        <button
+          className={`${styles.button} ${styles.buttonPrimary}`}
+          disabled={!canPrev}
+          onClick={() => goTo(page - 1)}
+        >
+          Prev
+        </button>
+        <span className={styles.pageInfo}>
+          Page <strong>{(data.number ?? page) + 1}</strong>
+          {data.totalPages ? <> / <strong>{data.totalPages}</strong></> : null}
+        </span>
+        <button
+          className={`${styles.button} ${styles.buttonPrimary}`}
+          disabled={!canNext}
+          onClick={() => goTo(page + 1)}
+        >
+          Next
+        </button>
       </div>
     </div>
   );

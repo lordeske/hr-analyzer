@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+
 import ProtectedRoute from "./pages/ProtectedRoute.jsx";
 
 import Home from "./pages/Home.jsx";
@@ -11,6 +12,9 @@ import ApplyCvPage from "./pages/ApplyCvPage.jsx";
 import CvResultPage from "./pages/CvResultPage.jsx";
 import MyCvs from "./pages/MyCvs.jsx";
 import HrDashboard from "./pages/HrDashboard.jsx";
+import CvList from "./pages/CvList.jsx";
+import Forbidden from "./pages/Forbidden.jsx";
+import RequireRole from "./pages/RequiredRole.jsx";
 
 export default function App() {
   return (
@@ -25,13 +29,23 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route path="/jobs" element={<JobsList />} />
         <Route path="/job/:id" element={<JobDetails />} />
-        <Route path="/apply/:jobId" element={<ApplyCvPage />} />
-        <Route path="/cv/:id" element={<CvResultPage />} />
-        <Route path="/my-cvs" element={<MyCvs />} />
-        <Route path="/hr-dashboard" element= {<HrDashboard/>} ></Route>
-      </Route>
+        <Route path="/forbidden" element={<Forbidden />} />
 
-     
+
+        <Route element={<RequireRole allowed={["CANDIDATE"]} />}>
+          <Route path="/apply/:jobId" element={<ApplyCvPage />} />
+          <Route path="/my-cvs" element={<MyCvs />} />
+        </Route>
+
+      
+        <Route element={<RequireRole allowed={["HR"]} />}>
+          <Route path="/hr-dashboard" element={<HrDashboard />} />
+          <Route path="/job/:id/cvs" element={<CvList />} />
+        </Route>
+
+       
+        <Route path="/cv/:id" element={<CvResultPage />} />
+      </Route>
     </Routes>
   );
 }

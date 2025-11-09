@@ -38,7 +38,7 @@ export async function RegisterHrApi(request) {
 export async function login(loginRequest) {
   try {
     const { data } = await api.post("/login", loginRequest);
-    saveToken(data.token ?? data);
+    saveToken(data);
     return data;
   } catch (err) {
     const status = err?.response?.status;

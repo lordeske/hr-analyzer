@@ -14,7 +14,7 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   } else {
-   
+
   }
   return config;
 });
@@ -52,7 +52,7 @@ export async function getJobById(id) {
     const { data } = await api.get(`/${id}`);
     return data;
   } catch (err) {
-   
+
     throw new Error(err?.message || "Failed to load job.");
   }
 }
@@ -88,7 +88,7 @@ export async function advancedSearchJobs({
 
 export async function getMyJobs({ page = 0, size = 20, sort = "createdAt,desc" } = {}) {
   const { data } = await api.get("/my-jobs", { params: { page, size, sort } });
- 
+
   return {
     items: Array.isArray(data?.content) ? data.content : [],
     page: data?.pageable?.pageNumber ?? 0,
@@ -101,9 +101,25 @@ export async function getMyJobs({ page = 0, size = 20, sort = "createdAt,desc" }
 export async function createJob(payload) {
   try {
     const { data } = await api.post("/create", payload);
-    return data; 
+    return data;
   } catch (err) {
     const msg = err?.response?.data?.message || err?.message || "Failed to create job.";
+    throw new Error(msg);
+  }
+}
+
+
+export async function getCvsByJob(id, { page = 0, size = 12, sort = "matchScore,desc" } = {}) {
+  try {
+    const { data } = await api.get(`/${id}/cvs`, {
+      params: { page, size, sort },
+    });
+    return data;
+  } catch (err) {
+    const msg =
+      err?.response?.data?.message ||
+      err?.message ||
+      "Failed to get CVs by Job.";
     throw new Error(msg);
   }
 }

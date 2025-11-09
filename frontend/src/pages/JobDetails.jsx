@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styles from "../styles/job.module.css";
 import { getJobById } from "../call/job.jsx";
+import { getRole } from "../call/tokenJson.jsx";
 
 
 
@@ -25,6 +26,7 @@ export default function JobDetails() {
 
   const { id } = useParams();
   const navigate = useNavigate();
+  const role = getRole();
 
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -86,13 +88,19 @@ export default function JobDetails() {
               </div>
 
               <div className={styles.actions}>
-                <button  className={`${styles.button} ${styles.buttonPrimary}`} onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(`/apply/${job.id}`);
-                }}>
-                  Test your CV
-                </button>
-                <button  className={`${styles.button} ${styles.buttonPrimary}`} onClick={() => navigate(`/jobs`)}>
+
+                {role !== "HR" && (
+
+                  <button className={`${styles.button} ${styles.buttonPrimary}`} onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/apply/${job.id}`);
+                  }}>
+                    Test your CV
+                  </button>
+
+                )}
+
+                <button className={`${styles.button} ${styles.buttonPrimary}`} onClick={() => navigate(`/jobs`)}>
                   Back to jobs
                 </button>
               </div>

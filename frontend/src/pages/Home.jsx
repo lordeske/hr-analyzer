@@ -4,13 +4,13 @@ import styles from "../styles/home.module.css";
 export default function Home() {
   return (
     <main className={styles.page}>
-      {/* Animirana pozadina */}
+      
       <div className={styles.bgGradient} />
       <div className={`${styles.blob} ${styles.blobA}`} />
       <div className={`${styles.blob} ${styles.blobB}`} />
       <div className={styles.noise} />
 
-      {/* Hero sadržaj */}
+    
       <section className={styles.hero}>
         <div className={styles.badge}>AI powered</div>
 
@@ -24,7 +24,7 @@ export default function Home() {
           Upload, analyze and compare your CV against openings. Get a match score and actionable tips — instantly.
         </p>
 
-        {/* Primarne akcije */}
+        
         <div className={styles.actions}>
           <Link to="/login" className={`${styles.btn} ${styles.btnPrimary}`}>
             Log in
@@ -40,7 +40,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Sekundarne akcije (opciono) */}
+        
         <div className={styles.secondary}>
           <Link to="/jobs" className={styles.link}>Browse jobs</Link>
           <span className={styles.dot} />
