@@ -46,15 +46,16 @@ public class CohereScoringService {
             You are an HR expert AI.
             Evaluate how well the following CV matches the provided job description. Consider skills, experience, education, and relevant technologies.
             Please make sure the suggestions are in the language in which the CV was submitted.
+            Please be very strict and validate thoroughly, taking every single point into account.
             Respond STRICTLY in this JSON format:
             {
               "matchPercentage": <number from 0 to 100>,
-              "suggestions": [
-                "<short suggestion 1>",
-                "<short suggestion 2>",
-                "<short suggestion 3>"
-                
-              ]
+//              "suggestions": [
+//                "<short suggestion 1>",
+//                "<short suggestion 2>",
+//                "<short suggestion 3>"
+//                
+//              ]
             }
 
             Job Description:

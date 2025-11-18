@@ -107,8 +107,9 @@ public class AuthService {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
         String jwt = jwtService.generateToken(userDetails);
+        String role = userDetails.getUser().getRole().toString();
 
-        return new AuthResponse(jwt);
+        return new AuthResponse(jwt, role);
 
 
 

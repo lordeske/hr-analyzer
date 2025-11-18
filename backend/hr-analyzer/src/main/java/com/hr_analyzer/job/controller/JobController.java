@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -28,6 +29,7 @@ public class JobController {
 
 
     @PostMapping("/create")
+    @PreAuthorize("hasRole('HR')")
     public ResponseEntity<JobResponse> createJob(@RequestBody JobRequest request) {
         JobResponse response = jobService.createJob(request);
         return ResponseEntity.ok(response);
@@ -61,7 +63,10 @@ public class JobController {
     }
 
 
+
+
     @GetMapping("/my-jobs")
+    @PreAuthorize("hasRole('HR')")
     public ResponseEntity<Page<JobResponse>> getMyJobs(
             @PageableDefault(size = 20, sort = "createdAt" , direction = Sort.Direction.DESC)
             Pageable pageable

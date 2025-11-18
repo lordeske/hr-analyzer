@@ -37,7 +37,7 @@ public class CvMapper {
         return CvResponse.builder()
                 .id(cv.getId())
                 .candidateLastName(cv.getCandidate().getLastName())
-                .candidateFirstName(cv.getCandidate().getLastName())
+                .candidateFirstName(cv.getCandidate().getFirstName())
                 .email(cv.getCandidate().getEmail())
                 .phoneNumber(cv.getCandidate().getPhone())
                 .jobTitle(cv.getJob().getTitle())

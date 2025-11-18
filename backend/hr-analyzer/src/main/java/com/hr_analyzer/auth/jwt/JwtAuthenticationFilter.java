@@ -1,11 +1,14 @@
 package com.hr_analyzer.auth.jwt;
 
 import com.hr_analyzer.auth.services.UserService;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -38,7 +41,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         jwt = authHeader.substring(7);
-        username = jwtService.extractUsername(jwt);
+
+        try
+        {
+            username = jwtService.extractUsername(jwt);
+        }
+        catch (ExpiredJwtException exception)
+        {
+            throw new CredentialsExpiredException("JWT expired", exception);
+        }
+        catch (Exception exception)
+        {
+            throw new BadCredentialsException("Invalid JWT", exception);
+        }
+
+
+
+
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userService.loadUserByUsername(username);
